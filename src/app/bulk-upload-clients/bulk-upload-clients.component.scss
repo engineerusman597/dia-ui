@@ -1,0 +1,12 @@
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.selected-row {
+    background-color: rgba(25, 118, 210, 0.08);
+}
+
+.grid-height-large {
+    max-height: calc(100vh - 400px) !important;
+    overflow-y: auto;
+}

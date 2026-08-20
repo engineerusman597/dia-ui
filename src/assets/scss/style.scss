@@ -1,0 +1,15 @@
+@import "../../../node_modules/bootstrap/dist/css/bootstrap.min.css";
+@import "common/variables";
+@import "common/general.scss";
+@import "common/professional-page.scss";
+@import "common/professional-dialog.scss";
+
+@import "fonts/fontawesome/fontawesome.scss";
+@import "fonts/fontawesome/regular.scss";
+@import "fonts/fontawesome/solid.scss";
+@import "fonts/fontawesome/brands.scss";
+
+@import "utilities/sidebar.scss";
+@import "utilities/navbar";
+@import "utilities/card";
+@import "theme/theme.scss";

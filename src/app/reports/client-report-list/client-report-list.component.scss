@@ -1,0 +1,31 @@
+.client-report-dialog {
+  min-width: min(1100px, 92vw);
+
+  .dialog-header {
+    h4 {
+      font-weight: 600;
+      color: #1f2937;
+    }
+  }
+
+  .report-table-wrap {
+    max-height: 60vh;
+    overflow: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+
+    .report-mat-table {
+      background: transparent;
+      min-width: 100%;
+    }
+
+    .mat-mdc-header-cell {
+      font-weight: 600;
+      background: #f8fafc;
+    }
+  }
+
+  .page-size-select {
+    width: 88px;
+  }
+}

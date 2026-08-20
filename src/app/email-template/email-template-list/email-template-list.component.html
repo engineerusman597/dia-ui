@@ -1,0 +1,68 @@
+<section class="content professional-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <mat-icon class="header-icon">people</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">
+          <span class="mb-0">Email Templates</span>
+        </h1>
+        <p class="page-subtitle">Manage Email Template</p>
+      </div>
+    </div>
+    <div class="header-actions d-none d-md-flex">
+      <button class="success me-2 btn" matButton="filled" [routerLink]="['/email-template/add']">
+        <mat-icon class="medium-icon fs-5 align-middle">add</mat-icon>
+        Add Email Template
+      </button>
+    </div>
+  </div>
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <div class="table-responsive">
+        <div class="grid-height-large">
+          <table mat-table [dataSource]="emailTemplates">
+            <!-- Action Column -->
+            <ng-container matColumnDef="action">
+              <th style="width:30%" mat-header-cell *matHeaderCellDef>
+                {{'ACTION' | translate }}
+              </th>
+              <td style="width:30%" mat-cell *matCellDef="let emailTemplate">
+                <a *hasClaim="'email_template_edit'" routerLinkActive="router-link-active"
+                  [routerLink]="['/email-template', emailTemplate.id]" matButton="filled" class="btn success  me-2"
+                  type="button">
+                  <mat-icon class="medium-icon fs-5 align-middle me-2">edit</mat-icon>
+                  <span> {{'EDIT' | translate }}</span>
+                </a>
+                <button *hasClaim="'email_template_delete'" matButton="filled" class="btn danger  me-2"
+                  (click)="delteEmailTemplate(emailTemplate)">
+                  <mat-icon class="medium-icon fs-5 align-middle me-2">delete</mat-icon>
+                  <span> {{'DELETE' | translate }}</span>
+                </button>
+              </td>
+            </ng-container>
+            <!-- Key Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>
+                {{'NAME' | translate }}
+              </th>
+              <td mat-cell *matCellDef="let emailTemplate"> {{emailTemplate.name}} </td>
+            </ng-container>
+            <!-- Value Column -->
+            <ng-container matColumnDef="subject">
+              <th mat-header-cell *matHeaderCellDef>
+                {{'SUBJECT' | translate }}
+              </th>
+              <td mat-cell *matCellDef="let emailTemplate"> {{emailTemplate.subject}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns;sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>

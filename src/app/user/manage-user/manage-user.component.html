@@ -1,0 +1,178 @@
+<section class="content professional-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <mat-icon class="header-icon">person_add</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">
+          Manage User
+        </h1>
+        <p class="page-subtitle">
+          @if (isEditMode) {
+          Update the user information and manage their account settings.
+          } @else {
+          Create a new user account by filling out the form below.
+          }
+        </p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button *hasClaim="'EDIT_USER'" class="success me-2 btn" matButton="filled" (click)="saveUser()">
+        <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+        {{ isEditMode ? 'Update' : 'Save' }}
+      </button>
+      <button type="button" class="error btn" matButton="filled" [routerLink]="['/users']">
+        <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon>
+        {{ "CANCEL" | translate }}
+      </button>
+    </div>
+  </div>
+  <form [formGroup]="userForm">
+    <mat-card class="professional-card" appearance="outlined">
+      <mat-card-content>
+        <div class="form-section">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label text-danger">{{ "FIRST_NAME" | translate }} <sup>*</sup></label>
+              <input formControlName="firstName" class="form-control" type="text" placeholder="Enter first name" />
+              @if (
+              userForm.get("firstName")?.touched &&
+              userForm.get("firstName")?.errors &&
+              userForm.get("firstName")?.errors?.["required"]
+              ) {
+              <div class="text-danger">
+                First name is required.
+              </div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label text-danger">{{ "LAST_NAME" | translate }} <sup>*</sup></label>
+              <input formControlName="lastName" class="form-control" type="text" placeholder="Enter last name" />
+              @if (
+              userForm.get("lastName")?.touched &&
+              userForm.get("lastName")?.errors &&
+              userForm.get("lastName")?.errors?.["required"]
+              ) {
+              <div class="text-danger">
+                Last name is required
+              </div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label text-danger">{{ "MOBILE_NUMBER" | translate }} <sup>*</sup></label>
+              <input formControlName="phoneNumber" class="form-control" type="text"
+                placeholder="Enter the mobile number" />
+              @if (
+              userForm.get("phoneNumber")?.touched &&
+              userForm.get("phoneNumber")?.errors &&
+              userForm.get("phoneNumber")?.errors?.["required"]
+              ) {
+              <div class="text-danger">
+                Mobile number is required.
+              </div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label text-danger">{{ "EMAIL" | translate }} <sup>*</sup></label>
+              <input formControlName="email" class="form-control" type="email" autocomplete="off"
+                placeholder="Enter the email" />
+              @if (
+              userForm.get("email")?.touched &&
+              userForm.get("email")?.errors
+              ) {
+              @if (userForm.get("email")?.errors?.["required"]) {
+              <div class="text-danger">
+                Email is required.
+              </div>
+              }
+              @if (userForm.get("email")?.errors?.["email"]) {
+              <div class="text-danger">
+                Please enter a valid email.
+              </div>
+              }
+              }
+            </div>
+            @if (!isEditMode) {
+            <div class="form-group">
+              <label class="form-label text-danger">{{ "PASSWORD" | translate }} <sup>*</sup></label>
+              <input autocomplete="new-password" formControlName="password" class="form-control" type="password"
+                placeholder="enter password" />
+              @if (
+              userForm.get("password")?.touched &&
+              userForm.get("password")?.errors
+              ) {
+              <div class="text-danger">
+                @if (userForm.get("password")?.errors?.["required"]) {
+                Password is required.
+                }
+                @if (userForm.get("password")?.errors?.["minlength"]) {
+                <div>
+                  Password must be at least
+                  {{ userForm.get("password")?.errors?.["minlength"]?.requiredLength }}
+                  characters long.
+                </div>
+                }
+              </div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label text-danger">{{ "CONFIRM_PASSWORD" | translate }} <sup>*</sup></label>
+              <input autocomplete="new-password" formControlName="confirmPassword" class="form-control" type="password"
+                placeholder="enter confirm password" />
+              @if (
+              userForm.get("confirmPassword")?.touched &&
+              userForm.get("confirmPassword")?.errors &&
+              userForm.get("confirmPassword")?.errors?.["required"]
+              ) {
+              <div class="text-danger">
+                Confirm password is required.
+              </div>
+              }
+              @if (
+              userForm.get("confirmPassword")?.touched &&
+              userForm.hasError("notSame")
+              ) {
+              <div class="text-danger">
+                Passwords do not match.
+              </div>
+              }
+            </div>
+            }
+            <div class="form-group">
+              <label class="form-label text-danger">{{ "ROLE" | translate }} <sup>*</sup></label>
+              <mat-radio-group formControlName="userType" class="d-flex flex-row align-items-center">
+                <mat-radio-button [value]="userType.SuperAdmin" class="me-3">Super Admin</mat-radio-button>
+                <mat-radio-button [value]="userType.SupportTeam" class="me-3">Support Team</mat-radio-button>
+              </mat-radio-group>
+              @if (
+              userForm.get("userType")?.touched && userForm.get("userType")?.errors?.["required"]
+              ) {
+              <div class="text-danger">
+                Role is required.
+              </div>
+              }
+            </div>
+          </div>
+          <div class="row">
+            <div class="mt-2 col-md-12">
+              <button *hasClaim="'EDIT_USER'" class="btn success me-2" matButton="filled" (click)="saveUser()">
+                <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+                {{ isEditMode ? 'Update' : 'Save' }}
+              </button>
+              <button type="button" class="btn error" matButton="filled" [routerLink]="['/users']">
+                <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon>
+                {{ "CANCEL" | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </form>
+</section>

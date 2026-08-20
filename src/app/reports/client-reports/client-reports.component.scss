@@ -1,0 +1,42 @@
+.client-reports-page {
+  .report-card {
+    background: #e5e5e5;
+    border-radius: 10px;
+    border: 1px solid #d2d2d2;
+    min-height: 230px;
+  }
+
+  .ring {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+
+    .ring-inner {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: #efefef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #3b3b3b;
+    }
+  }
+
+  .ring-total .ring-inner {
+    font-size: 18px;
+  }
+
+  .last-upload-badge {
+    background: #f7f7f7;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 23px;
+    line-height: 1;
+    color: #525252;
+  }
+}

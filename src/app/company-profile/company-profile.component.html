@@ -1,0 +1,140 @@
+<section class="content professional-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <mat-icon class="header-icon">business</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">
+          <span class="mb-0">Company Profile</span>
+        </h1>
+        <p class="page-subtitle">Manage Company Profile</p>
+      </div>
+    </div>
+  </div>
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <form [formGroup]="companyProfileForm">
+        <div class="card">
+          <div class="header">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label for="companyTitle">{{ 'COMPANY_TITLE' | translate}}</label>
+                    <input type="text" id="companyTitle" formControlName="companyTitle" class="form-control"
+                      placeholder="Enter company title" />
+                    @if (
+                    companyProfileForm.get('companyTitle')?.touched &&
+                    companyProfileForm.get('companyTitle')?.invalid
+                    ) {
+                    <div class="text-danger">
+                      @if (
+                      companyProfileForm.get('companyTitle')?.errors?.required
+                      ) {
+                      <div>
+                        {{ 'COMPANY_TITLE_IS_REQUIRED' | translate }}
+                      </div>
+                      }
+                    </div>
+                    }
+                  </div>
+                </div>
+                <div class="col-md-12">
+                  <div class="form-group">
+                    <label for="logoUpload"> {{ 'COMPANY_LOGO' | translate }}</label>
+                    <mat-card class="example-card" appearance="outlined">
+                      @if (logoUrl) {
+                      <img mat-card-image [src]="logoUrl" alt="Company Logo" width="200" height="55" />
+                      }
+                      <mat-card-content>
+                        <div class="form-group">
+                          <input #logoUpload type="file" (change)="onLogoUpload($event)" accept="image/*" hidden />
+                          <button matButton="filled" class="success mt-2 btn" color="primary"
+                            (click)="triggerLogoUpload(logoUpload)">
+                            <mat-icon class="medium-icon  fs-5 align-middle">image</mat-icon>
+                            {{ 'CHANGE_LOGO' | translate }}
+                          </button>
+                        </div>
+                        <div class="row">
+                          <div class="col-sm-12">
+                            <span class="font-weight-bold text-danger">
+                              {{'THE_LOGO_SIZE_NOTE' | translate}}
+                            </span>
+                          </div>
+                        </div>
+                        @if (
+                        companyProfileForm.get('logo')?.touched &&
+                        companyProfileForm.get('logo')?.invalid
+                        ) {
+                        <div class="text-danger">
+                          @if (companyProfileForm.get('logo')?.errors?.required) {
+                          <div>
+                            {{ 'COMPANY_LOGO_IS_REQUIRED' | translate }}
+                          </div>
+                          }
+                        </div>
+                        }
+                      </mat-card-content>
+                    </mat-card>
+
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="bannerUpload"> {{ 'COMPANY_BANNER' | translate}}</label>
+                  <mat-card class="example-card" appearance="outlined">
+                    @if (bannerUrl) {
+                    <img mat-card-image [src]="bannerUrl" alt="Company Banner" width="1000" height="500" />
+                    }
+                    <mat-card-content>
+                      <div class="form-group mt-2">
+                        <input #bannerUpload type="file" (change)="onBannerUpload($event)" accept="image/*" hidden />
+                        <button matButton="filled" class="success mt-2 btn" color="primary"
+                          (click)="triggerBannerUpload(bannerUpload)">
+                          <mat-icon class="medium-icon fs-5 align-middle">image</mat-icon>
+                          {{ 'CHANGE_BANNER' | translate }}
+                        </button>
+                      </div>
+                      <div class="row">
+                        <div class="col-sm-12">
+                          <span class="font-weight-bold text-danger">
+                            {{'THE_BANNER_SIZE_NOTE' | translate}}
+                          </span>
+                        </div>
+                      </div>
+                      @if (
+                      companyProfileForm.get('banner')?.touched &&
+                      companyProfileForm.get('banner')?.invalid
+                      ) {
+                      <div class="text-danger">
+                        @if (companyProfileForm.get('banner')?.errors?.required) {
+                        <div>
+                          {{ 'COMPANY_BANNER_IS_REQUIRED' | translate }}
+                        </div>
+                        }
+                      </div>
+                      }
+                    </mat-card-content>
+                  </mat-card>
+                </div>
+              </div>
+              <div class="m-top-10">
+                <button matButton="filled" class="success me-2 btn" [disabled]="companyProfileForm.invalid"
+                  (click)="onSave()">
+                  <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+                  {{ "SAVE" | translate }}
+                </button>
+                <button matButton="filled" class="error btn btn-sm" [routerLink]="['/dashboard']">
+                  <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon> {{ "CANCEL" | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</section>

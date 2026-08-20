@@ -1,0 +1,220 @@
+<section class="content professional-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-icon-wrapper">
+                <mat-icon class="header-icon">people</mat-icon>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">
+                    <span class="mb-0">KYC Clients Report</span>
+                </h1>
+                <p class="page-subtitle">Client KYC status overview</p>
+
+            </div>
+        </div>
+    </div>
+    <div class="client-reports-page container-fluid py-4 px-3">
+        <!-- Chart Section -->
+        <div class="row g-3">
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="report-card h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                    <div class="ring ring-total mb-3" [style]="getRingStyle(100, '#0ea5a8')">
+                        <div class="ring-inner">{{ totalClients }}</div>
+                    </div>
+                    <h5 class="mb-3">Total Clients</h5>
+                    <button type="button" class="btn btn-warning btn-sm fw-semibold px-3"
+                        (click)="openClientDialog(reportModes.Total)">
+                        View &amp; Download
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="report-card h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                    <div class="ring mb-3" [style]="getRingStyle(completedPercentage, '#16a34a')">
+                        <div class="ring-inner">{{ completedPercentage | number : '1.2-2' }}%</div>
+                    </div>
+                    <h5 class="mb-3">Completed</h5>
+                    <button type="button" class="btn btn-warning btn-sm fw-semibold px-3"
+                        (click)="openClientDialog(reportModes.Completed)">
+                        View &amp; Download
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="report-card h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                    <div class="ring mb-3" [style]="getRingStyle(pendingPercentage, '#dc2626')">
+                        <div class="ring-inner">{{ pendingPercentage | number : '1.2-2' }}%</div>
+                    </div>
+                    <h5 class="mb-3">Pending</h5>
+                    <button type="button" class="btn btn-warning btn-sm fw-semibold px-3"
+                        (click)="openClientDialog(reportModes.Pending)">
+                        View &amp; Download
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-xl-3">
+                <div
+                    class="report-card h-100 d-flex flex-column align-items-center justify-content-center p-3 text-center">
+                    <div class="last-upload-badge mb-3">{{ (lastUploadedDate | date : 'd MMMM yyyy') || '-' }}</div>
+                    <h5 class="mb-0">Last Upload</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- list -->
+    <div class="card bg-secondary-subtle border-secondary-subtle m-3">
+        <div class="card-header">
+            <h5 class="mb-0">Client KYC Status</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- FROM DATE -->
+                    <div class="col-md-3">
+                        <label class="form-label text-uppercase small fw-semibold mb-1">From</label>
+
+                        <div class="input-group" (click)="fromPicker.open()" style="cursor:pointer;">
+                            <input matInput [matDatepicker]="fromPicker" [(ngModel)]="fromDate" placeholder="DD/MM/YYYY"
+                                class="form-control" [max]="maxDate" />
+                            <button class="btn btn-primary" (click)="fromPicker.open()">
+                                <mat-icon class="fs-5">calendar_today</mat-icon>
+                            </button>
+                            <mat-datepicker #fromPicker></mat-datepicker>
+                        </div>
+                    </div>
+
+                    <!-- TO DATE -->
+                    <div class="col-md-3">
+                        <label class="form-label text-uppercase small fw-semibold mb-1">To</label>
+
+                        <div class="input-group" (click)="toPicker.open()" style="cursor:pointer;">
+                            <input matInput [matDatepicker]="toPicker" [(ngModel)]="toDate" placeholder="DD/MM/YYYY"
+                                class="form-control" [max]="maxDate" />
+                            <button class="btn btn-primary" (click)="toPicker.open()">
+                                <mat-icon class="fs-5">calendar_today</mat-icon>
+                            </button>
+                            <mat-datepicker #toPicker></mat-datepicker>
+                        </div>
+                    </div>
+
+                    <!-- SEARCH BUTTON -->
+
+                    <div class="col-md-auto">
+                        <div class="d-flex gap-3">
+
+                            <!-- Search -->
+                            <button type="button"
+                                class="btn btn-warning d-flex align-items-center gap-2 px-4 fw-semibold"
+                                (click)="search()" [disabled]="!fromDate || !toDate">
+                                <mat-icon class="fs-5">search</mat-icon>
+                                <span>Search</span>
+                            </button>
+
+                            <!-- Clear -->
+                            <button type="button"
+                                class="btn btn-secondary d-flex align-items-center gap-2 px-4 fw-semibold"
+                                (click)="clearDates()" [disabled]="!fromDate && !toDate">
+                                <mat-icon class="fs-5">cancel</mat-icon>
+                                <span>Clear</span>
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-secondary-subtle border-secondary-subtle m-3">
+            <div class="table-responsive">
+                <table mat-table [dataSource]="dataSource">
+                    <ng-container matColumnDef="totalClients">
+                        <th mat-header-cell *matHeaderCellDef>Total Clients</th>
+                        <td mat-cell *matCellDef="let row">
+                            <span class="bg-primary px-2 py-1 text-white fw-medium rounded">
+                                {{ row.totalClients }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="completed">
+                        <th mat-header-cell *matHeaderCellDef>Completed</th>
+                        <td mat-cell class="text-success" *matCellDef="let row">
+                            <span class="bg-success px-2 py-1 text-white fw-medium rounded">
+                                {{ row.completedClients }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="pending">
+                        <th mat-header-cell *matHeaderCellDef>Pending</th>
+                        <td mat-cell class="text-danger" *matCellDef="let row">
+                            <span class="bg-danger px-2 py-1 text-white fw-medium rounded">
+                                {{ row.pendingClients }}
+                            </span>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="action">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let row">
+                            <button type="button" class="btn btn-warning fw-semibold"
+                                (click)="openClientDialog(reportModes.View)">
+                                View &amp; Download
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <tr *matNoDataRow>
+                        <td colspan="12">
+                            <div class="m-2">
+                                <b> No Data Found </b>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-secondary-subtle border-secondary-subtle m-3">
+        <div class="card-header">
+            <h5 class="mb-0">Support User Assigned Report</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <span class="fw-bold">Assigned To</span>
+                    <mat-select class="form-control border border-secondary-subtle"
+                        placeholder="Select Assigned To Support User" panelClass="mat-select-control"
+                        [formControl]="assignToUser">
+                        <input class="form-control form-control-sm" placeholder="Search support users"
+                            [formControl]="userControl" />
+                        @for (user of userList; track user.id) {
+                        <mat-option [value]="user">{{ user.name }}</mat-option>
+                        }
+                    </mat-select>
+                </div>
+                <div class="col-md-4 ms-auto text-end">
+                    <button type="button" matButton="filled" class="success btn" [disabled]="!assignToUser.value"
+                        (click)="downloadAssignedReport()">
+                        Download CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="bg-secondary-subtle border-secondary-subtle m-3">
+            <app-client-report-page [assignToId]="assignToUser.value?.id"
+                [name]="assignToUser.value ? assignToUser.value.name : ''"></app-client-report-page>
+        </div>
+    </div>
+
+</section>

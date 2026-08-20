@@ -1,0 +1,39 @@
+<app-loading-indicator></app-loading-indicator>
+<div class="card-wrap">
+    <div class="kyc-banner d-flex align-items-center justify-content-between gap-2 mb-3">
+        <img src="assets/images/DI-Logo.png" alt="DIASPORA INSURANCE" style="max-height:72px;margin-bottom:8px"
+            [routerLink]="['/support/upload-document' , supportUserId]">
+        <span class="d-flex align-items-center gap-2">
+            @if(!isUploadDocumentRoute){
+            <button class="btn btn-info d-flex align-items-center gap-1"
+                [routerLink]="['/support/upload-document' , supportUserId]">
+                <mat-icon>search</mat-icon>
+                <span class="mb-0 fw-medium">Search</span>
+            </button>
+            }
+
+            <button class="btn btn-success d-flex align-items-center gap-1" [routerLink]="['/support/manage-client']"
+                [queryParams]="supportUserId ? { userId: supportUserId } : null">
+                <mat-icon class="text-white">person_add</mat-icon>
+                <span class="mb-0 fw-medium text-white">Add Client</span>
+            </button>
+
+            <button class="btn btn-primary d-flex align-items-center gap-1" [routerLink]="['/support/client-list']"
+                [queryParams]="supportUserId ? { userId: supportUserId } : null">
+                <mat-icon class="text-white">list</mat-icon>
+                <span class="mb-0 fw-medium text-white">Client List</span>
+            </button>
+
+            <button class="btn btn-secondary d-flex align-items-center gap-1" [routerLink]="['/support/profile']">
+                <mat-icon>person</mat-icon>
+                <span class="mb-0 fw-medium">Profile</span>
+            </button>
+
+            <button class="btn d-flex align-items-center gap-1" style="background-color:#ffcc00;" (click)="onLogout()">
+                <mat-icon>logout</mat-icon>
+                <span class="mb-0 fw-medium">Logout</span>
+            </button>
+        </span>
+    </div>
+</div>
+<router-outlet></router-outlet>

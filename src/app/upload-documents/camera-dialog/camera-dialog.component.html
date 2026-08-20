@@ -1,0 +1,47 @@
+<div class="camera-dialog">
+  <div class="camera-header">
+    <h3>Take a Picture</h3>
+    <button mat-icon-button (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="camera-body">
+    <!-- Live video feed -->
+    @if(!capturedImage){
+    <div class="video-container">
+      <video #videoElement autoplay playsinline></video>
+      @if(cameraError){
+      <div class="camera-error">
+        <mat-icon>videocam_off</mat-icon>
+        <p>{{ cameraError }}</p>
+      </div>
+      }
+    </div>
+    }@else {
+    <!-- Captured image preview -->
+    <div class="preview-container">
+      <img [src]="capturedImage" alt="Captured preview" />
+    </div>
+    }
+    <!-- Hidden canvas for capture -->
+    <canvas #canvasElement style="display: none;"></canvas>
+  </div>
+
+  <div class="camera-actions">
+    @if(!capturedImage){
+    <button class="btn capture-btn" (click)="capture()" [disabled]="!streamReady">
+      <mat-icon>camera_alt</mat-icon>
+      <span>Capture</span>
+    </button>
+    }@else {
+    <button class="btn retake-btn" (click)="retake()">
+      <mat-icon>replay</mat-icon>
+      <span>Retake</span>
+    </button>
+    <button class="btn use-btn" (click)="usePhoto()">
+      <mat-icon>check</mat-icon>
+      <span>Use Photo</span>
+    </button>
+    }
+  </div>
+</div>

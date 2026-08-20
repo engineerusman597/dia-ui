@@ -1,0 +1,114 @@
+<section class="content">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <mat-icon class="header-icon">person</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">
+          <span class="mb-0">Profile</span>
+        </h1>
+        <p class="page-subtitle">Manage your profile</p>
+      </div>
+    </div>
+    <!-- Desktop Actions -->
+    <div class="header-actions d-none d-md-flex">
+      <button (click)="changePassword()" matButton="filled" class="primary">
+        <mat-icon class="medium-icon fs-5 align-middle">lock</mat-icon>
+        {{'CHANGE_PASSWORD' | translate}}
+      </button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="body">
+      <form [formGroup]="userForm">
+        <div class="row">
+          <div class="col-md-9">
+            <div class="box box-primary">
+              <div class="box-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-group ">
+                      <label>{{'FIRST_NAME' | translate}}</label>
+                      <input formControlName="firstName" class="form-control" type="text">
+                      <div *ngIf="userForm.get('firstName').touched && userForm.get('firstName').errors">
+                        <div class="text-danger" *ngIf="userForm.get('firstName').hasError('required')">
+                          {{'FIRST_NAME_IS_REQUIRED' | translate}}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group ">
+                      <label>{{'LAST_NAME' | translate}}</label>
+                      <input formControlName="lastName" class="form-control" type="text">
+                      <div *ngIf="userForm.get('lastName').touched && userForm.get('lastName').errors">
+                        <div class="text-danger" *ngIf="userForm.get('lastName').hasError('required')">
+                          {{'LAST_NAME_IS_REQUIRED' | translate}}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group ">
+                      <label>{{'MOBILE_NUMBER' | translate}}</label>
+                      <input formControlName="phoneNumber" class="form-control" type="number">
+                      <div *ngIf="userForm.get('phoneNumber').touched && userForm.get('phoneNumber').errors">
+                        <div class="text-danger" *ngIf="userForm.get('phoneNumber').hasError('required')">
+                          {{'MOBILE_IS_REQUIRED' | translate}}
+                        </div>
+                        <div class="text-danger" *ngIf="userForm.get('phoneNumber').hasError('pattern')">
+                          {{'MOBILE_NUMBER_MUST_HAVE_10_DIGITS' | translate}}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label>{{'EMAIL' | translate}}</label>
+                      <input [attr.disabled]="true" formControlName="email" class="form-control" type="email">
+                    </div>
+                  </div>
+                  <div class="form-group col-md-12">
+                    <label>{{'ADDRESS' | translate}}</label>
+                    <textarea formControlName="address" class="form-control"></textarea>
+                  </div>
+                  <div class="m-top-10 col-md-6">
+                    <button matButton="filled" class="success me-2" (click)="updateProfile()" cdkFocusInitial>
+                      <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+                      {{'SAVE' | translate}}
+                    </button>
+                    <button type="button" matButton="filled" class="error" [routerLink]="['/dashboard']">
+                      <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon>
+                      {{'CANCEL' | translate}}</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="row justify-content-center">
+              <mat-card>
+                <mat-card-header>
+                  <mat-card-title>{{'PROFILE_PHOTO' | translate}}</mat-card-title>
+                </mat-card-header>
+                <input hidden (change)="fileEvent($event)" #fileInput name="logo" type="file" name="Profile Photo"
+                  fxFlex="30">
+                <img *ngIf="imgURL" class="full-width" [src]="imgURL" />
+                <img *ngIf="!imgURL" class="full-width" src="../../../assets/images/user-profile.jpg" />
+                <mat-card-actions>
+                  <button *ngIf="!imgURL" class="btn btn-success btn-sm me-2" (click)="fileInput.click()">
+                    <i class="far fa-image"></i> {{'ADD_PHOTO' | translate}}</button>
+                  <button *ngIf="imgURL" class="btn btn-success btn-sm me-2" (click)="fileInput.click()">
+                    <i class="far fa-image"></i> {{'CHANGE_PHOTO' | translate}}</button>
+                  <button *ngIf="imgURL" type="button" (click)="removeImage()" class="btn btn-danger btn-sm">
+                    <i class="fas fa-trash-alt"></i> {{'REMOVE_PHOTO' | translate}}</button>
+                </mat-card-actions>
+              </mat-card>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

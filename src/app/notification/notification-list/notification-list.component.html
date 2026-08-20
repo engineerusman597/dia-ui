@@ -1,0 +1,72 @@
+<section class="content">
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-2">
+        <span class="mb-0 page-title">{{ "NOTIFICATIONS" | translate }}
+        </span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="header">
+        <div class="row m-2">
+          <div class="col-md-4">
+            <input class="form-control" placeholder="{{
+                'SEARCH_BY_MESSAGE' | translate
+              }}" #input />
+          </div>
+        </div>
+      </div>
+      <div class="body">
+        <div class="table-responsive">
+          <div class="grid-height-medium">
+            <table class="w-100" mat-table [dataSource]="dataSource" matSort matSortActive="createdDate"
+              matSortDirection="desc">
+
+              <ng-container matColumnDef="createdDate">
+                <th class="table-column-200" mat-header-cell *matHeaderCellDef mat-sort-header>
+                  {{ "DATE" | translate }}
+                </th>
+                <td class="table-column-200" mat-cell *matCellDef="let notification">
+                  {{ notification.createdDate | utcToLocalTime : "full" }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="message">
+                <th class="table-column-500" mat-header-cell *matHeaderCellDef mat-sort-header>
+                  {{ "MESSAGE" | translate }}
+                </th>
+                <td class="table-column-500" mat-cell *matCellDef="let notification">
+                  <span *ngIf="!notification.isRead" class="badge bg-success">new</span>
+                  <ng-container *ngIf="notification.message">
+                    <b>{{ "REMINDER" | translate }}</b> ::
+                    {{ notification.message }}
+                  </ng-container>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="footer">
+                <td mat-footer-cell colspan="4" *matFooterCellDef>
+                  <mat-paginator [length]="notificationResource.totalCount" [pageSize]="notificationResource.pageSize"
+                    [pageSizeOptions]="[10, 20, 30]"></mat-paginator>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              <tr mat-footer-row *matFooterRowDef="['footer']; sticky: true"></tr>
+              <tr *matNoDataRow>
+                <td colspan="4">
+                  <div class="m-2">
+                    <b> {{ "NO_DATA_FOUND" | translate }}</b>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="spinner-container" *ngIf="dataSource.loading$ | async">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>

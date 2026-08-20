@@ -1,0 +1,113 @@
+<div class="d-flex align-items-center justify-content-between" style="padding: 10px 20px;">
+  <h2 class="m-0 fs-5" style="color: #0f2a19;">Document Preview List</h2>
+  <button class="btn text-danger m-0 pt-0 pe-0" aria-label="Close" (click)="dialogRef.close()">
+    <mat-icon class="align-middle" style="font-size: 25px; width: 30px; height: 30px;">cancel</mat-icon>
+  </button>
+</div>
+@if(!data.isClientView) {
+<div class="panel client-details"
+  style="background: #0f2a19; border-radius: 10px; border: 1px solid #e0e0e0; margin:0px 20px 0px 20px;">
+  <div class="d-flex align-items-center justify-content-between">
+    <h3 class="panel-title">Client Details</h3>
+  </div>
+  <div class="details-grid">
+    <div class="left">
+      <div><span class="label">Policy Number:</span> <span class="val">{{ client?.policyNumber || 'N/A'
+          }}</span></div>
+      <div><span class="label">Name:</span> <span class="val">{{ client?.name || '-' }}</span></div>
+      <div><span class="label">Email:</span> <span class="val">{{ client?.email || '-' }}</span></div>
+      <div><span class="label">Address:</span> <span class="val">{{ client?.physicalAddress || '-' }}</span>
+      </div>
+      <div><span class="label">Country of Origin:</span> <span class="val">{{ client?.countryOfOrigin || 'N/A'
+          }}</span></div>
+    </div>
+    <div class="right">
+      <!-- Commencement Date -->
+      <div><span class="label">Commencement Date:</span> <span class="val">{{ client?.commencementDate |
+          utcToLocalTime:'shortDate' || '-' }}</span></div>
+      <div><span class="label">Premium Payable To:</span> <span class="val">{{ client?.premiumPayableTo }}</span></div>
+      <div><span class="label">Date of Birth:</span> <span class="val">{{ client?.dateOfBirth |
+          utcToLocalTime:'shortDate' || '-' }}</span></div>
+      <div><span class="label">Relationship:</span> <span class="val">{{ client?.relationship || 'N/A'
+          }}</span></div>
+      <div><span class="label">Gender:</span> <span class="val">{{ client?.gender | genderLabel}}</span></div>
+
+    </div>
+  </div>
+</div>
+}
+<div class="panel docs">
+
+  @if(!documents || documents.length === 0) {
+  <div class="empty">No documents</div>
+  }
+
+  @for (doc of documents; track doc.id) {
+  <div class="col-md-12 mb-3 doc-row">
+    <div class="doc-info w-100 mb-3 px-4 pb-2 d-flex flex-wrap align-items-center"
+      style="background: #0f2a19; border-radius: 10px; border: 1px solid #e0e0e0;">
+      <div class="doc-meta-list d-flex flex-wrap align-items-center mb-0 gap-4 w-100">
+        <div class="d-flex align-items-center me-4 mb-2 mb-md-0">
+          <span class="fw-semibold me-1" style="color:#d4af37">Type:</span>
+          <span class="fw-bold">{{ doc.documentType | documentType }}</span>
+        </div>
+        @if(doc.expiryDate) {
+        <div class="d-flex align-items-center me-4 mb-2 mb-md-0">
+          <span class="fw-semibold me-1" style="color:#d4af37">{{ doc.documentType === documentType.IdentityProof ?
+            'Expiry Date:' : 'Issue Or Bill Date:' }}</span>
+          <span class="fw-bold">{{ doc.expiryDate | utcToLocalTime:'shortDate' || '-' }}</span>
+        </div>
+        }
+        @if(doc.documentStatus === documentStatus.Rejected || doc.documentStatus === documentStatus.Approved) {
+        <div class="d-flex align-items-center me-4 mb-2 mb-md-0">
+          <span class="fw-semibold me-1" style="color:#d4af37">Status:</span>
+          <span class="badge px-2 py-1 ms-1" [ngClass]="{
+                            'bg-success': doc.documentStatus === documentStatus.Approved,
+                            'bg-danger': doc.documentStatus === documentStatus.Rejected,
+                            'bg-primary': doc.documentStatus === documentStatus.Uploaded,
+                            'bg-warning text-dark': doc.documentStatus === documentStatus.Pending
+                        }" style="font-size: 12px;">
+            {{ doc.documentStatus | requestStatus }}
+          </span>
+        </div>
+        @if(doc.documentStatus === documentStatus.Rejected && doc.description) {
+        <div class="d-flex align-items-center me-4 mb-2 mb-md-0">
+          <span class="fw-semibold me-1" style="color:#d4af37">Reason:</span>
+          <span class="badge bg-danger text-white px-3 py-2 ms-1">{{ doc.description || '-' }}</span>
+        </div>
+        }
+        }
+        <div class="d-flex align-items-center mt-md-2 mt-sm-0 ms-auto gap-2">
+          <button class="btn btn-warning rounded-circle" style="padding:5px 8px" (click)="download(doc)"
+            aria-label="Download">
+            <mat-icon class='medium-icon fs-5 align-middle'>download</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+    @if(doc.fileBytes || doc.safeFileUrl) {
+    <!-- Image -->
+    @if(!doc.isPdf) {
+    <img [src]="doc.fileBytes" class="img-fluid" style="object-fit:contain;" />
+    }
+    <!-- PDF -->
+    @if(doc.isPdf) {
+    <app-pdf-viewer [src]="doc.fileBytes" [height]="'clamp(360px, 70vh, 820px)'"></app-pdf-viewer>
+    }
+    }
+    @if((doc.documentStatus !== documentStatus.Rejected && doc.documentStatus !== documentStatus.Approved) &&
+    doc.documentType !== documentType.AdditionalDocument) {
+    <div class="d-flex align-items-center justify-content-center gap-3 ms-4 mt-3">
+      <button matButton="filled" class="success btn" (click)="onApprove(doc)">
+        <mat-icon class="medium-icon fs-5 align-middle">check_circle</mat-icon>
+        Approve
+      </button>
+      <button matButton="filled" class="error btn" (click)="onReject(doc)">
+        <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon>
+        Reject
+      </button>
+    </div>
+    }
+  </div>
+  }
+</div>

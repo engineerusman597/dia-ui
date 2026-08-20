@@ -1,0 +1,189 @@
+<section class="content professional-page">
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-icon-wrapper">
+                <mat-icon class="header-icon">people</mat-icon>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">
+                    <span class="mb-0">Bulk Assigned Clients</span>
+                </h1>
+                <p class="page-subtitle">Manage client assignments in bulk</p>
+            </div>
+        </div>
+    </div>
+    <mat-card appearance="outlined" class="mb-4 mx-2">
+        <mat-card-header class="mb-3">
+            <mat-card-title class="fs-5">
+                <mat-icon class="medium-icon fs-5 align-middle">assignment</mat-icon>
+                Transfer Clients Between Support Users
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-bold">
+                        <mat-icon class="medium-icon fs-5 align-middle">person_add</mat-icon>
+                        From
+                    </label>
+                    <mat-form-field appearance="outline" class="w-100">
+
+                        <mat-select [formControl]="fromAssignControl"
+                            (selectionChange)="clearFilter(fromAssignSearchControl)">
+                            <mat-select-trigger>
+                                @if (selectedFromUser) {
+                                {{ selectedFromUser.name }}
+                                <span class="bg-primary text-white rounded px-2 py-1 ms-1">
+                                    {{ selectedFromUser.clientCount || 0 }} clients
+                                </span>
+                                } @else {
+                                Select user
+                                }
+                            </mat-select-trigger>
+                            <input type="text" class="form-control" [formControl]="fromAssignSearchControl"
+                                placeholder="Search user" />
+                            <mat-option value="">Select user</mat-option>
+
+                            @for (user of fromTransferSupportUsers; track user.id) {
+                            <mat-option [value]="user.id">
+                                {{ user.name }}
+                                <span class="bg-primary text-white rounded px-2 py-1 ms-1">
+                                    {{ user.clientCount || 0 }} clients
+                                </span>
+                            </mat-option>
+                            }
+                        </mat-select>
+                        @if (fromAssignControl.hasError('required') && fromAssignControl.touched) {
+                        <mat-error>From user is required.</mat-error>
+                        }
+                    </mat-form-field>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-bold">
+                        <mat-icon class="medium-icon fs-5 align-middle">person_add</mat-icon>
+                        To
+                    </label>
+                    <mat-form-field appearance="outline" class="w-100">
+
+                        <mat-select [formControl]="toAssignControl"
+                            (selectionChange)="clearFilter(toAssignSearchControl)">
+                            <mat-select-trigger>
+                                @if (selectedToUser) {
+                                {{ selectedToUser.name }}
+                                <span class="bg-primary text-white rounded px-2 py-1 ms-1">
+                                    {{ selectedToUser.clientCount || 0 }} clients
+                                </span>
+                                } @else {
+                                Select user
+                                }
+                            </mat-select-trigger>
+                            <input type="text" class="form-control" [formControl]="toAssignSearchControl"
+                                placeholder="Search user" />
+                            <mat-option value="">Select user</mat-option>
+
+                            @for (user of toTransferSupportUsers; track user.id) {
+                            <mat-option [value]="user.id">
+                                {{ user.name }}
+                                <span class="bg-primary text-white rounded px-2 py-1 ms-1">
+                                    {{ user.clientCount || 0 }} clients
+                                </span>
+                            </mat-option>
+                            }
+                        </mat-select>
+                        @if (toAssignControl.hasError('required') && toAssignControl.touched) {
+                        <mat-error>To user is required.</mat-error>
+                        }
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="mt-2">
+                <button type="button" matButton="filled" class="success px-4 btn" (click)="submitTransferClients()"
+                    [disabled]="fromAssignControl.invalid || toAssignControl.invalid || isTransferring">
+                    <mat-icon class="medium-icon fs-5 align-middle">swap_horizontal_circle</mat-icon>
+                    Transfer Clients
+                </button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined" class="mb-4 mx-2">
+        <mat-card-header class="mb-3">
+            <mat-card-title class="fs-5">
+                <mat-icon class="medium-icon fs-5 align-middle">assignment</mat-icon>
+                Assigned Clients to Support User
+            </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-bold">
+                        <mat-icon class="medium-icon fs-5 align-middle">person_add</mat-icon>
+                        Assigned To
+                    </label>
+                    <mat-form-field appearance="outline" class="w-100">
+
+                        <mat-select [formControl]="assignToControl"
+                            (selectionChange)="clearFilter(assignToSearchControl)">
+                            <input type="text" class="form-control" [formControl]="assignToSearchControl"
+                                placeholder="Search user" />
+                            <mat-option value="">Select user</mat-option>
+
+                            @for (user of supportUsers; track user.id) {
+                            <mat-option [value]="user.id">
+                                {{ user.name }}
+                            </mat-option>
+                            }
+                        </mat-select>
+                        @if (assignToControl.hasError('required') && assignToControl.touched) {
+                        <mat-error>Assigned To user is required.</mat-error>
+                        }
+                    </mat-form-field>
+                </div>
+
+                <div class="col-md-12 mt-2">
+                    <label class="form-label fw-bold">
+                        <mat-icon class="medium-icon fs-5 align-middle">person</mat-icon>
+                        Search and Select Clients
+                    </label>
+                    <mat-form-field appearance="outline" class="w-100">
+                        <input type="text" matInput placeholder="Search client" [formControl]="clientSearchControl"
+                            [matAutocomplete]="clientAuto" />
+
+                        <mat-autocomplete #clientAuto="matAutocomplete" (optionSelected)="onClientSelected($event)">
+                            @for(client of filteredClients; track client.id) {
+                            <mat-option [value]="client">
+                                {{client.policyNumber}} - {{ client.name }} ({{ client.email }})
+                            </mat-option>
+                            }
+                        </mat-autocomplete>
+                    </mat-form-field>
+                </div>
+            </div>
+
+            @if(selectedClients.length > 0) {
+            <div class="selected-wrapper mt-2">
+                <label class="form-label fw-semibold mb-2">Selected Clients</label>
+                <div class="d-flex flex-wrap gap-2">
+                    @for(client of selectedClients; track client.id) {
+                    <span class="badge selected-client">
+                        {{client.policyNumber}} - {{ client.name }}
+                        <button type="button" class="btn btn-sm p-0 ms-2 text-white" (click)="removeClient(client.id)">
+                            <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon>
+                        </button>
+                    </span>
+                    }
+                </div>
+            </div>
+            }
+
+            <div class="mt-2">
+                <button type="button" matButton="filled" class="success px-4 btn" [disabled]="isSubmitting"
+                    (click)="submitAssignClients()"
+                    [disabled]="selectedClients.length === 0 || assignToControl.invalid">
+                    <mat-icon class="medium-icon fs-5 align-middle">check_circle</mat-icon>
+                    Assigned Clients
+                </button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</section>

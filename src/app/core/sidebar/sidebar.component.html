@@ -1,0 +1,67 @@
+<div class="professional-sidebar">
+  <!-- Left Sidebar -->
+  <aside id="leftsidebar" class="sidebar modern-sidebar" (mouseenter)="mouseHover()" (mouseleave)="mouseOut()">
+    <!-- Menu -->
+    <div class="menu">
+      <ng-scrollbar [style.height]="listMaxHeight + 'px'" visibility="hover">
+        <ul id="sidebarnav" class="list modern-list">
+          <li class="header sidebar-logo-header">
+            <a class="navbar-brand sidebar-brand" routerLink="/dashboard">
+              @if (logoUrl) {
+              <img [src]="logoUrl" alt="Logo" class="logo-img" />
+              } @else {
+              <img src="/images/logo.png" alt="Logo" class="logo-img" />
+              }
+            </a>
+            <button mat-icon-button (click)="callSidemenuCollapse()" class="collapse-btn" type="button">
+              <mat-icon [ngClass]="{ rotated: isOpenSidebar }">menu_open</mat-icon>
+            </button>
+          </li>
+          <li class="header sidebar-action-header">
+            <ul class="nav navbar-nav navbar-right">
+              <!-- LANGUAGE + NOTIFICATIONS + PROFILE MENU (unchanged) -->
+              <li>
+                <div class="d-flex gap-2  align-items-center w-100">
+                  <!-- Profile -->
+                  <button class="btn btn-primary" routerLink="my-profile">
+                    <mat-icon class="medium-icon fs-5 pt-1">person</mat-icon>
+                    Profile
+                  </button>
+                  <button class="btn btn-secondary" (click)="onLogout()">
+                    <mat-icon class="medium-icon fs-5 align-middle">logout</mat-icon>
+                    {{ "LOGOUT" | translate }}
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </li>
+          @for (sidebarItem of sidebarItems; track sidebarItem) {
+          <li [routerLinkActiveOptions]="{ exact: true }" *hasClaim="sidebarItem.hasClaims"
+            [routerLinkActive]="sidebarItem.submenu.length !== 0 ? 'active' : 'active-top'">
+            <a [routerLink]="sidebarItem.class === '' ? [sidebarItem.path] : null" [ngClass]="[sidebarItem.class]"
+              (click)="callToggleMenu($event, sidebarItem.submenu.length)" class="menu-top">
+              <i-feather [name]="sidebarItem.icon" class="sidebarIcon"></i-feather>
+              <span class="hide-menu">{{sidebarItem.title | translate}}
+              </span>
+            </a>
+            <!-- First level menu -->
+            @if (sidebarItem.submenu.length > 0) {
+            <ul class="ml-menu">
+              @for (sidebarSubItem1 of sidebarItem.submenu; track sidebarSubItem1) {
+              <li *hasClaim="sidebarSubItem1.hasClaims"
+                [routerLinkActive]="sidebarSubItem1.submenu.length > 0 ? '' : 'active'">
+                <a [routerLink]="sidebarSubItem1.submenu.length > 0 ? null : [sidebarSubItem1.path]"
+                  (click)="callToggleMenu($event,sidebarSubItem1.submenu.length)" [ngClass]="[sidebarSubItem1.class]">
+                  {{sidebarSubItem1.title | translate}}
+                </a>
+              </li>
+              }
+            </ul>
+            }
+          </li>
+          }
+        </ul>
+      </ng-scrollbar>
+    </div>
+  </aside>
+</div>

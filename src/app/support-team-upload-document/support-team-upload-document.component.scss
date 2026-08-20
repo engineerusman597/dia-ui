@@ -1,0 +1,380 @@
+:root {
+  --dark-green: #2c3e2c;
+  --yellow: #ffd700;
+  --muted-dark: #263923;
+}
+
+.container.card-wrap {
+  max-width: 80%;
+  margin: 18px auto;
+}
+
+body .logo-title {
+  font-weight: 700;
+  color: var(--dark-green);
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+}
+
+.details-card {
+  padding: 0 24px 24px 24px;
+}
+
+.section-title {
+  color: var(--yellow);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.small-muted {
+  color: #dfe6d9;
+  opacity: 0.95;
+}
+
+.detail-label {
+  color: #d4af37;
+  font-size: 0.9rem;
+  font-weight: 450;
+  margin-left: 8px;
+}
+
+.detail-value {
+  color: whitesmoke;
+  font-size: 1rem;
+  font-weight: 300;
+  padding-top: 6px;
+  margin-left: 8px;
+}
+
+.upload-section {
+  background: #111111;
+  padding: 28px 48px 18px 48px;
+}
+
+.additional-section {
+  background: linear-gradient(135deg, #5f0202 0%, #7b0909 45%, #4a0202 100%);
+  padding: 28px 48px 18px 48px;
+}
+
+.file-controls .btn {
+  min-width: 165px;
+}
+
+.example-img {
+  width: 100%;
+  max-width: 200px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  height: auto;
+  object-fit: contain;
+}
+
+.example-preview {
+  width: 100%;
+  max-width: 200px;
+  height: 280px;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  background: #fff;
+}
+
+.form-control:focus {
+  box-shadow: none;
+  border-color: rgba(255, 215, 0, 0.9);
+}
+
+.update-address-btn {
+  background: #d4af37;
+  color: #0a0a0a;
+  font-weight: 500;
+  padding: 4px 18px;
+  white-space: nowrap;
+}
+
+.update-address-btn:hover {
+  background: #c9a230;
+  color: #0a0a0a;
+}
+
+.address-textarea {
+  background: rgba(255, 255, 255, 0.08);
+  color: whitesmoke;
+  border: 1px solid #d4af37;
+}
+
+.address-textarea:focus {
+  background: rgba(255, 255, 255, 0.12);
+  color: whitesmoke;
+  border-color: #d4af37;
+  box-shadow: none;
+}
+
+.document-status-mobile {
+  border-radius: 10px;
+  background: #233b2a;
+  margin: 0;
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+}
+
+.additional-proof-title {
+  color: #d4af37;
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+
+.additional-proof-subtitle {
+  color: #f6d8b2;
+  font-size: 0.82rem;
+  margin-bottom: 14px;
+}
+
+.additional-proof-btn {
+  width: fit-content;
+  min-width: 180px;
+}
+
+.additional-submit-btn {
+  background: #ffc107;
+  color: #1f1300;
+  width: fit-content;
+  min-width: 180px;
+}
+
+.additional-submit-btn:disabled {
+  opacity: 0.65;
+}
+
+.additional-proof-hint {
+  color: #ffd6d6;
+  font-size: 0.75rem;
+}
+
+.additional-proof-count {
+  color: #ffe082;
+  font-size: 0.85rem;
+}
+
+.additional-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1.5fr));
+  gap: 10px;
+  min-height: 120px;
+}
+
+.additional-preview-item {
+  border-radius: 8px;
+  border: 1px solid #9d5757;
+  background: rgba(255, 255, 255, 0.12);
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.additional-preview-image,
+.additional-preview-pdf {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border: none;
+}
+
+.additional-preview-empty {
+  color: #f3d0d0;
+  font-size: 0.82rem;
+  grid-column: 1 / -1;
+  border: 1px dashed #b17373;
+  border-radius: 8px;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 10px;
+}
+
+/* KYC search styles */
+
+.kyc-search-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kyc-search-input {
+  width: 320px;
+  max-width: 100%;
+  height: 40px;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.kyc-search-input:focus {
+  outline: none;
+  box-shadow: none;
+  border-color: rgba(255, 215, 0, 0.9);
+}
+
+.kyc-search-btn {
+  background-color: #ffcc00;
+  height: 40px;
+  padding: 0 20px;
+  font-weight: 500;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kyc-search-btn {
+  background: #ffc107;
+  color: #1f1300;
+  border: none;
+}
+
+@media (max-width: 768px) {
+  .container.card-wrap {
+    max-width: 100%;
+    padding: 0 12px;
+  }
+
+  .kyc-search-group {
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .upload-section {
+    padding: 18px 16px 12px 16px;
+  }
+
+  .additional-section {
+    padding: 18px 16px 12px 16px;
+  }
+
+  .file-controls {
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100%;
+  }
+
+  .file-controls .btn,
+  .file-controls label {
+    width: 100%;
+    min-width: auto;
+    padding: 10px 16px !important;
+    font-size: 0.875rem;
+    justify-content: center;
+  }
+
+  .file-controls .align-self-center {
+    align-self: center !important;
+    padding: 4px 0 !important;
+  }
+
+  .example-img {
+    max-width: 140px;
+    margin-top: 12px;
+  }
+
+  .form-control[style*='width: auto'] {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  .upload-section .btn.fw-medium {
+    width: 100%;
+    padding: 10px 16px !important;
+  }
+
+  .additional-section .btn.fw-medium {
+    width: 100%;
+    padding: 10px 16px !important;
+  }
+
+  .document-status-mobile {
+    margin: 20px 0 0 0;
+  }
+
+  .d-box {
+    display: block;
+    width: 100% !important;
+  }
+
+  .additional-proof-btn,
+  .additional-submit-btn {
+    width: 100%;
+  }
+
+  .additional-preview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575.98px) {
+  .example-preview {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .document-status-mobile {
+    margin: 20px 0 0 0;
+  }
+}
+
+@media (max-width: 375px) {
+  .kyc-search-input {
+  width: auto;
+  max-width: 100%;
+  height: 40px;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+}
+
+@media (min-width: 375px) and (max-width: 575.98px) {
+  .document-status-mobile {
+    margin: 20px 0 0 0;
+  }
+
+  .d-box {
+    display: block;
+    width: 100% !important;
+  }
+
+  .kyc-search-input {
+    width: auto;
+    max-width: 100%;
+    height: 40px;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+  }
+
+  /* Make the details card paddings smaller on mobile */
+  .details-card .rounded-top-3 {
+    padding: 18px 14px 12px 14px !important;
+  }
+
+  .detail-label {
+    margin-left: 0;
+    font-size: 0.86rem;
+  }
+
+  .detail-value {
+    margin-left: 0;
+    font-size: 0.95rem;
+  }
+
+  /* Ensure document status area stacks nicely */
+  .document-status-mobile,
+  .details-card .row p-3,
+  .details-card .row .p-3 {
+    width: 100% !important;
+  }
+}

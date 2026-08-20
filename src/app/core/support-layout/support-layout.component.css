@@ -1,0 +1,41 @@
+.container-fluid.card-wrap {
+    max-width: 100%;
+    margin: 18px auto;
+}
+
+.kyc-banner {
+    background: linear-gradient(90deg, rgba(16, 70, 27, 0.13), rgba(16, 70, 27, 0.151));
+    padding: 16px 16px 8px;
+}
+
+@media (max-width: 768px) {
+    .container-fluid.card-wrap {
+        max-width: 100%;
+        padding: 0 12px;
+    }
+
+    .kyc-banner {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .kyc-banner img {
+        max-height: 56px;
+        margin-bottom: 0 !important;
+    }
+
+    .kyc-banner>span {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .kyc-banner button {
+        padding: 6px 10px !important;
+        font-size: 0.9rem;
+    }
+}

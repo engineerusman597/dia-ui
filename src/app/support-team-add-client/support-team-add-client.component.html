@@ -1,0 +1,195 @@
+<section class="professional-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-icon-wrapper">
+                <mat-icon class="header-icon">person_add</mat-icon>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">
+                    Manage Client
+                </h1>
+                <p class="page-subtitle">
+                    Manage client information and account settings. Fill out the form below to create or update a client
+                    profile.
+                </p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="success me-2 btn" matButton="filled" (click)="saveClient()">
+                <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+                {{ isEditMode ? 'Update' : 'Create' }}
+            </button>
+            @if(isEditMode) {
+            <button type="button" class="warning me-2 btn" matButton="filled" (click)="downloadClientsCsv()">
+                <mat-icon class="medium-icon fs-5 align-middle">download</mat-icon>
+                Download CSV
+            </button>
+            } @else {
+            <button type="button" class="primary me-2 btn" matButton="filled" (click)="saveClient(true)">
+                <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+                Create & Send Email
+            </button>
+            }
+            <button type="button" class="error me-2 btn" matButton="filled"
+                [routerLink]="['/support/upload-document', clientForm.get('assignToId')?.value]">
+                <mat-icon class="medium-icon fs-5 align-middle">arrow_back</mat-icon>
+                Back
+            </button>
+        </div>
+    </div>
+
+    <mat-card appearance="outlined">
+        <!-- Header intentionally simple for non-dialog usage -->
+        <mat-card-content>
+            <form [formGroup]="clientForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label text-danger">Name <sup>*</sup></label>
+                        <input formControlName="name" placeholder="Full Name" class="form-control" type="text" />
+                        @if(clientForm.get('name')?.touched && clientForm.get('name')?.errors?.['required']) {
+                        <div class="text-danger">Name is required</div>
+                        }
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-danger">Email <sup>*</sup></label>
+                        <input formControlName="email" placeholder="Email" class="form-control" type="email" />
+                        @if(clientForm.get('email')?.touched && clientForm.get('email')?.errors?.['required']) {
+                        <div class="text-danger">Email is required</div>
+                        }
+                        @if(clientForm.get('email')?.touched && clientForm.get('email')?.errors?.['email']) {
+                        <div class="text-danger">Invalid email format</div>
+                        }
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label text-danger">Policy Number <sup>*</sup></label>
+                        </div>
+                        <ng-container formArrayName="policies">
+                            @for (policyCtrl of policiesFormArray.controls; track $index; let i = $index) {
+                            <div class="input-group mb-2">
+                                <input class="form-control" [formControlName]="i" placeholder="Policy Number" />
+                                @if (i === 0) {
+                                <button type="button" class="btn btn-primary" (click)="addPolicy()">
+                                    <mat-icon>add</mat-icon>
+                                </button>
+                                }
+                                @if (i > 0) {
+                                <button type="button" class="btn btn-danger" (click)="removePolicy(i)">
+                                    <mat-icon>remove_circle</mat-icon>
+                                </button>
+                                }
+                            </div>
+                            }
+                            @if (clientForm.get('policies')?.invalid && (clientForm.get('policies')?.touched ||
+                            clientForm.touched)) {
+                            <div class="text-danger mt-1">
+                                At least one policy is required.
+                            </div>
+                            }
+                        </ng-container>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label class="form-label text-danger">Date of Birth <sup>*</sup></label>
+                        <div class="input-group">
+                            <input class="form-control" [matDatepicker]="dobPicker" formControlName="dateOfBirth"
+                                placeholder="DD/MM/YYYY" (focus)="dobPicker.open()" />
+                            <button class="btn btn-primary" style="border-radius: 0 0.25rem 0.25rem 0;"
+                                aria-label="Open date picker" (click)="dobPicker.open()">
+                                <mat-icon>calendar_today</mat-icon>
+                            </button>
+                            <mat-datepicker #dobPicker></mat-datepicker>
+                        </div>
+                        @if(clientForm.get('dateOfBirth')?.touched &&
+                        clientForm.get('dateOfBirth')?.errors?.['required']) {
+                        <div class="text-danger">Date of Birth is required</div>
+                        }
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label class="form-label">Relationship</label>
+                        <mat-select class="form-control" placeholder="Relationship" panelClass="mat-select-control"
+                            formControlName="relationship">
+                            <mat-option value="Principal">Principal</mat-option>
+                        </mat-select>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label class="form-label">Country of Origin</label>
+                        <mat-select class="form-control" placeholder="Select Country" panelClass="mat-select-control"
+                            formControlName="countryId" (selectionChange)="onChangeTheCountryOfOrigin()">
+                            <input class="form-control form-control-sm" placeholder="Search countries"
+                                [formControl]="countryControl" />
+                            @for (country of countryList; track country.id) {
+                            <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                            }
+                        </mat-select>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label class="form-label">Commencement Date</label>
+                        <div class="input-group">
+                            <input class="form-control" [matDatepicker]="commencePicker"
+                                formControlName="commencementDate" placeholder="DD/MM/YYYY"
+                                (focus)="commencePicker.open()" />
+                            <button class="btn btn-primary" style="border-radius: 0 0.25rem 0.25rem 0;"
+                                aria-label="Open date picker" (click)="commencePicker.open()">
+                                <mat-icon>calendar_today</mat-icon>
+                            </button>
+                            <mat-datepicker #commencePicker></mat-datepicker>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label class="form-label">Premium Payable To</label>
+                        <div class="input-group">
+                            <input class="form-control" formControlName="premiumPayableTo"
+                                placeholder="Enter Premium Payable To" />
+                        </div>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label class="form-label">Trim</label>
+                        <input formControlName="trim" placeholder="Trim" class="form-control" type="text" />
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label class="form-label">Physical Address</label>
+                        <input formControlName="physicalAddress" placeholder="Physical Address" class="form-control"
+                            type="text" />
+                    </div>
+                    <div class="col-md-12 mt-2">
+                        <label class="form-label">Gender</label>
+                        <mat-radio-group formControlName="gender" class="d-flex gap-3 align-items-center">
+                            @for (g of genderOptions; track g.id) {
+                            <mat-radio-button [value]="g.id">{{ g.name }}</mat-radio-button>
+                            }
+                        </mat-radio-group>
+                    </div>
+
+                    <app-client-attachment [clientForm]="clientForm" [isEditMode]="isEditMode"
+                        [currentClient]="currentClient"></app-client-attachment>
+
+                    <div class="col-md-12 my-3 d-flex">
+                        <button type="submit" (click)="saveClient()" class="success me-2 btn" matButton="filled">
+                            <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+                            {{ isEditMode ? 'Update' : 'Create' }}
+                        </button>
+                        @if(isEditMode) {
+                        <button type="button" class="warning me-2 btn" matButton="filled"
+                            (click)="downloadClientsCsv()">
+                            <mat-icon class="medium-icon fs-5 align-middle">download</mat-icon>
+                            Download CSV
+                        </button>
+                        } @else {
+                        <button type="button" class="primary me-2 btn" matButton="filled" (click)="saveClient(true)">
+                            <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+                            Create & Send Email
+                        </button>
+                        }
+                        <button type="button" class="error me-2 btn" matButton="filled"
+                            [routerLink]="['/support/upload-document', clientForm.get('assignToId')?.value]">
+                            <mat-icon class="medium-icon fs-5 align-middle">arrow_back</mat-icon>
+                            Back
+                        </button>
+                        <!-- CSV file download button -->
+                    </div>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
+</section>

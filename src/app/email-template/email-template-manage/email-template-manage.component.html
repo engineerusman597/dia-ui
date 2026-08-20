@@ -1,0 +1,90 @@
+<section class="content professional-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <mat-icon class="header-icon">people</mat-icon>
+      </div>
+      <div class="header-text">
+        <span *ngIf="!emailTemplate" class="mb-0 page-title">{{'ADD_EMAIL_TEMPLATE' | translate}}</span>
+        <span *ngIf="emailTemplate" class="mb-0 page-title">{{'EDIT_EMAIL_TEMPLATE' | translate}}</span>
+      </div>
+    </div>
+  </div>
+  <mat-card class="professional-card" appearance="outlined">
+    <mat-card-content>
+      <form [formGroup]="emailTemplateForm">
+        <div class="box box-primary">
+          <div class="box-body">
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="form-group ">
+                  <label> {{'NAME' | translate }}</label>
+                  <input formControlName="name" class="form-control" type="text">
+                  <div *ngIf="emailTemplateForm.get('name').dirty && emailTemplateForm.get('name').errors">
+                    <div class="text-danger" *ngIf="emailTemplateForm.get('name').hasError('required')">
+                      {{'EMAIL_TEMPLATE_NAME_IS_REQUIRED' | translate }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="form-group ">
+                  <label>{{'SUBJECT' | translate }}</label>
+                  <input formControlName="subject" class="form-control" type="text">
+                  <div *ngIf="emailTemplateForm.get('subject').dirty && emailTemplateForm.get('subject').errors">
+                    <div class="text-danger" *ngIf="emailTemplateForm.get('subject').hasError('required')">
+                      {{'SUBJECT_IS_REQUIRED' | translate }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="form-group ">
+                  <label>
+                    {{'BODY' | translate }}
+                    <span class="text-danger">
+                      {{'WORD_MUST_BE_START_AND_END_WITH' | translate }}
+                    </span>
+                  </label>
+                  <div class="NgxEditor__Wrapper">
+                    <angular-editor formControlName="body" [config]="toolbar"></angular-editor>
+                  </div>
+                  <div *ngIf="emailTemplateForm.get('body').dirty && emailTemplateForm.get('body').errors">
+                    <div class="text-danger" *ngIf="emailTemplateForm.get('body').hasError('required')">
+                      {{'BODY_IS_REQUIRED' | translate }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="mt-2 col-md-12">
+                <ng-container *ngIf="emailTemplate">
+                  <button class="success me-2 btn" matButton="filled" (click)="addUpdateEmailTemplate()" cdkFocusInitial>
+                    <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+                    {{'SAVE' | translate }}
+                  </button>
+                </ng-container>
+                <ng-container *ngIf="!emailTemplate">
+                  <button class="success me-2 btn" matButton="filled" (click)="addUpdateEmailTemplate()" cdkFocusInitial>
+                    <mat-icon class="medium-icon fs-5 align-middle">save</mat-icon>
+                    {{'SAVE' | translate }}
+                  </button>
+                </ng-container>
+                <button type="button" class="danger me-2 btn" matButton="filled" [routerLink]="['/email-template']">
+                  <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon>
+                  {{'CANCEL' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</section>

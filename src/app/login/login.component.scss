@@ -1,0 +1,84 @@
+.login-page {
+  max-width: 680px;
+  .brand-logo {
+    max-height: 72px;
+    margin-bottom: 8px;
+  }
+
+  .hero-title {
+    color: #1D311C;
+    font-weight: 200;
+    font-size: 34px;
+    margin-top: 8px;
+  }
+
+  .hero-sub {
+    color: #6b6b6b;
+    max-width: 640px;
+    margin: 8px auto 24px;
+  }
+
+  .login-card {
+    background: #2f3e34; /* dark green */
+    border-radius: 12px;
+    padding: 34px 36px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 620px;
+
+    .card-inner {
+      text-align: center;
+      color: #ffffff;
+
+      .card-title {
+        color: #D4AF37; /* gold */
+        font-weight: 400;
+        margin-bottom: 8px;
+        font-size: 26px;
+      }
+
+      .card-sub {
+        color: rgba(255,255,255,0.85);
+        margin-bottom: 22px;
+      }
+
+      .input-label {
+        display: block;
+        text-align: left;
+        color: #D4AF37;
+        margin-bottom: 6px;
+        font-weight: 500;
+      }
+
+      .input-white {
+        width: 100%;
+        border-radius: 6px;
+        border: none;
+        padding: 12px 14px;
+        background: #ffffff;
+        color: #222;
+        box-shadow: none;
+      }
+
+      .btn-login {
+        margin-top: 8px;
+        width: 100%;
+        background: #F6C510; /* yellow */
+        color: #0a0a0a;
+        font-size: 20px;
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: none;
+      }
+
+      .forgot-link {
+        margin-top: 14px;
+        color: rgba(255,255,255,0.9);
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .login-page { padding: 20px; }
+}

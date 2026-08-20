@@ -1,0 +1,45 @@
+@if(status !== null) {
+<div class="flex-column gap-2 p-3 document-status-mobile alert" [ngClass]="{
+                                'alert-danger': status === documentStatus.Rejected,
+                                'alert-success': status === documentStatus.Approved,
+                                'alert-warning': status === documentStatus.Uploaded,
+                                'alert-primary': status === documentStatus.Pending
+                            }" style="margin-top:28px !important;">
+    <div class="d-flex align-items-center gap-2 mb-1">
+        @if (status === documentStatus.Rejected) {
+        <mat-icon class="text-danger">error_outline</mat-icon>
+        }
+        @if (status === documentStatus.Approved) {
+        <mat-icon class="text-success">check_circle</mat-icon>
+        }
+        @if (status === documentStatus.Uploaded) {
+        <mat-icon class="text-warning">upload</mat-icon>
+        }
+        @if (status === documentStatus.Pending) {
+        <mat-icon style="color:#0d6efd">hourglass_top</mat-icon>
+        }
+        <span class="fw-bold" style="color: #D4AF37;font-size: 1rem; font-weight: 600;">Document Status
+            :</span>
+
+        @if (status === documentStatus.Rejected) {
+        <div class="bg-danger fw-semibold p-1 px-2 rounded text-white">Rejected</div>
+        }
+        @if (status === documentStatus.Approved) {
+        <div class="bg-success fw-semibold p-1 px-2 rounded text-white">Approved</div>
+        }
+        @if (status === documentStatus.Uploaded) {
+        <div class="bg-warning fw-semibold p-1 px-2 rounded text-dark">Uploaded</div>
+        }
+        @if (status === documentStatus.Pending) {
+        <div class="bg-primary fw-semibold p-1 px-2 rounded text-white">Pending</div>
+        }
+    </div>
+
+    @if (status === documentStatus.Rejected) {
+    <div
+        style="color: #fff; background: #b71c1c22; border-radius: 6px; padding: 7px 12px; margin-top: 4px; font-size: 0.70rem;">
+        <span style="font-weight: 400;">Reason:</span> {{description}}
+    </div>
+    }
+</div>
+}

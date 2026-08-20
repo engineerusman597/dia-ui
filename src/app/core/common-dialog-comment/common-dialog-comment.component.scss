@@ -1,0 +1,26 @@
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  /* Adjust size as needed */
+  cursor: pointer;
+  color: #555;
+  /* Change color as needed */
+  margin-left: auto;
+  /* Pushes button to the right */
+}
+
+.close-button:hover {
+  color: red;
+  /* Change color on hover */
+}
+
+.w-98 {
+  width: 98% !important;
+}

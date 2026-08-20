@@ -1,0 +1,26 @@
+.document-status-mobile {
+    border-radius: 10px;
+    background: #233b2a;
+    margin: 0;
+    display: inline-flex;
+    width: auto;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .document-status-mobile {
+        margin: 20px 0 0 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .document-status-mobile {
+        margin: 20px 0 0 0;
+    }
+}
+
+@media (min-width: 375px) and (max-width: 575.98px) {
+    .document-status-mobile {
+        margin: 20px 0 0 0;
+    }
+}

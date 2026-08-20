@@ -1,0 +1,87 @@
+<div class="container mt-4 mb-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-12">
+            <div class="card shadow-lg border-0 unsubscribe-card">
+                <div class="card-body py-3 px-4">
+                    <!-- Header Icon -->
+                    <div class="text-center mb-2">
+                        <div class="icon-circle mx-auto mb-2 animate-pulse">
+                            <i-feather name="mail" class="large-icon text-white"></i-feather>
+                        </div>
+                    </div>
+
+                    <!-- Initial State - Reason Selection -->
+                    <div>
+                        <h2 class="text-center fw-bold mb-1 main-title">Unsubscribe</h2>
+                        <p class="text-center text-muted mb-2 subtitle">
+                            Help us understand why you're unsubscribing
+                        </p>
+
+                        <form [formGroup]="unsubscribeForm">
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold reason-label">
+                                    <i-feather name="list" class="label-icon me-2"></i-feather>
+                                    Select a reason for unsubscribing:
+                                </label>
+
+                                <div class="reason-list">
+                                    <div class="form-check reason-item" *ngFor="let reason of reasons">
+                                        <input class="form-check-input" type="radio" [value]="reason.value"
+                                            formControlName="reason" [id]="'reason_' + reason.value">
+                                        <label class="form-check-label w-100" [for]="'reason_' + reason.value">
+                                            <div class="reason-content">
+                                                <div class="reason-title">{{reason.label}}</div>
+                                                <small class="reason-desc">{{reason.description}}</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="text-danger mt-1 validation-error"
+                                        *ngIf="unsubscribeForm.get('reason')?.touched && unsubscribeForm.get('reason')?.hasError('required')">
+                                        Please provide a reason for unsubscribing
+                                    </div>
+                                </div>
+
+                                <!-- Other Reason Textarea -->
+                                <div class="mt-2 other-reason-section"
+                                    *ngIf="unsubscribeForm.get('reason')?.value === 'other'">
+                                    <label class="form-label fw-semibold">Please specify</label>
+                                    <textarea class="form-control custom-textarea" formControlName="otherReason"
+                                        rows="3" placeholder="Tell us more about why you're unsubscribing...">
+                                    </textarea>
+                                    <div class="text-danger mt-1 validation-error"
+                                        *ngIf="unsubscribeForm.get('otherReason')?.touched && unsubscribeForm.get('otherReason')?.hasError('required')">
+                                        <i-feather name="alert-circle" style="width: 16px; height: 16px;"
+                                            class="me-1"></i-feather>
+                                        Please specify your reason for unsubscribing
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-center gap-3 flex-wrap action-buttons">
+                                <button type="button" class="btn btn-danger btn-lg px-4 py-2" (click)="unsubscribe()"
+                                    [disabled]="loading">
+                                    <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                                    Confirm Unsubscribe
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-lg px-4 py-2" (click)="close()"
+                                    [disabled]="loading">
+                                    Keep Subscription
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Info Box -->
+                        <div class="alert alert-info mt-2 d-flex align-items-start info-box" role="alert">
+                            <i-feather name="info" class="me-2 flex-shrink-0 info-icon"></i-feather>
+                            <div>
+                                <strong>Note:</strong> Please be aware that unsubscribing will stop all email
+                                communications.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

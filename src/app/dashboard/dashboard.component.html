@@ -1,0 +1,56 @@
+<section class="content">
+  <div class="container-fluid">
+    <div class="row mt-1">
+      <div class="col">
+        <div class="small-box bg-green">
+          <div class="inner">
+            <h3>{{totalClientCount}}</h3>
+            <p>Total Clients</p>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="small-box bg-aqua">
+          <div class="inner">
+            <h3>{{totalPendingClientCount}}</h3>
+            <p>Pending Clients To Upload Documents</p>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="small-box bg-warning">
+          <div class="inner">
+            <h3>{{bothDocumentApprovedClient}}</h3>
+            <p>Both Documents Approved Clients</p>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="small-box bg-danger">
+          <div class="inner">
+            <h3>{{totalRejectedClientCount}}</h3>
+            <p>Total Documents Rejected</p>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="small-box bg-success">
+          <div class="inner">
+            <h3>{{totalApprovedClientCount}}</h3>
+            <p>Total Documents Approved</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <app-clients-pending-approval></app-clients-pending-approval>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col-md-12">
+        <app-clients-reject-document></app-clients-reject-document>
+      </div>
+    </div>
+  </div>
+</section>

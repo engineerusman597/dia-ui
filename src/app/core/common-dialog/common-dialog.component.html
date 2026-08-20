@@ -1,0 +1,15 @@
+<div class="d-flex">
+    <span mat-dialog-title class="dialog-title">{{primaryMessage}}</span>
+</div>
+<mat-dialog-content>
+    <div>
+        <button class="btn btn-success btn-sm me-2" (click)="clickHandler(true)">
+            <mat-icon class="medium-icon fs-5 align-middle">check_circle</mat-icon>
+            Yes
+        </button>
+        <button class="btn btn-danger btn-sm" (click)="clickHandler(false)">
+            <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon>
+            No
+        </button>
+    </div>
+</mat-dialog-content>

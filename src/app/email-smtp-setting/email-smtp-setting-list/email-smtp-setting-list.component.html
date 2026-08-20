@@ -1,0 +1,73 @@
+<section class="content">
+  <div class="container-fluid">
+
+    <div class="row align-items-center">
+      <!-- Left-hand side: Title -->
+      <div class="col-md-6 mb-2">
+        <span class="mb-0 page-title">{{'EMAIL_SMTP_SETTING' | translate}}</span>
+      </div>
+      <!-- Right-hand side: Buttons -->
+      <div class="col-md-6 d-flex justify-content-end mb-2">
+        <button [routerLink]="['/email-smtp/manage']" class="btn btn-success btn-sm me-2">
+          <i class="fas fa-plus"></i>
+          {{'ADD_SMTP_SETTING' | translate}}
+        </button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="body">
+        <div class="table-responsive">
+          <div class="grid-height-large">
+            <table mat-table [dataSource]="emailSMTPSettings">
+              <!-- Action Column -->
+              <ng-container matColumnDef="action">
+                <th class="table-column-fix-188" mat-header-cell *matHeaderCellDef>{{'ACTION' | translate}} </th>
+                <td mat-cell *matCellDef="let emailSMTPSetting">
+                  <button [routerLink]="['/email-smtp/manage', emailSMTPSetting.id]" class="btn btn-success btn-sm me-2"
+                    type="button">
+                    <i-feather name="edit" class="small-icon"></i-feather>
+                    <span class="d-none d-sm-inline"> {{'EDIT' | translate}}</span>
+                  </button>
+                  <button class="btn btn-danger btn-sm" type="button"
+                    (click)="deleteEmailSMTPSetting(emailSMTPSetting)">
+                    <i-feather name="trash" class="small-icon"></i-feather>
+                    <span class="d-none d-sm-inline"> {{'DELETE' | translate}}</span>
+                  </button>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="host">
+                <th mat-header-cell *matHeaderCellDef> {{'HOST' | translate}} </th>
+                <td mat-cell *matCellDef="let emailSMTPSetting"> {{emailSMTPSetting.host}} </td>
+              </ng-container>
+              <ng-container matColumnDef="userName">
+                <th mat-header-cell *matHeaderCellDef> {{'USER_NAME' | translate}}</th>
+                <td mat-cell *matCellDef="let emailSMTPSetting"> {{emailSMTPSetting.userName}} </td>
+              </ng-container>
+              <ng-container matColumnDef="port">
+                <th mat-header-cell *matHeaderCellDef>{{'PORT' | translate}} </th>
+                <td mat-cell *matCellDef="let emailSMTPSetting"> {{emailSMTPSetting.port}} </td>
+              </ng-container>
+              <ng-container matColumnDef="isDefault">
+                <th mat-header-cell *matHeaderCellDef> {{'IS_DEFAULT' | translate}} </th>
+                <td mat-cell *matCellDef="let emailSMTPSetting">
+                  <button *ngIf="emailSMTPSetting.isDefault" class="btn btn-success btn-sm">{{'YES' |
+                    translate}}</button>
+                  <button *ngIf="!emailSMTPSetting.isDefault" class="btn btn-light btn-sm">{{'NO' | translate}}</button>
+                </td>
+              </ng-container>
+              <tr *matNoDataRow>
+                <td colspan="5">
+                  <div class="m-2">
+                    <b> {{'NO_DATA_FOUND' | translate}}</b>
+                  </div>
+                </td>
+              </tr>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns;sticky: true"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,42 @@
+<mat-dialog-content class="pt-2">
+  <div class="d-flex mb-2">
+    <div class="me-auto py-2 pe-2">
+      <span class="page-title text-dark">{{primaryMessage}}
+      </span>
+    </div>
+    <div class="d-flex justify-content-end mb-2">
+      <mat-icon class="medium-icon fs-5 align-middle text-danger cursor-pointer mt-2 ms-2"
+        (click)="clickHandler(false)">cancel</mat-icon>
+    </div>
+  </div>
+
+  @if(note) {
+  <div class="d-flex">
+    <mat-icon class="medium-icon">warning</mat-icon>
+    <span class="text-warning">
+      {{note}}
+    </span>
+  </div>
+  }
+  <div class="row">
+    <div class="form-group">
+      <div class="col-md-12">
+        <label class="font-weight-bold text-dark"> Comment </label>
+        <textarea class="form-control" [(ngModel)]="comment" [required]="true"></textarea>
+        @if(commentRequired() && !comment.trim()) {
+        <div class="text-danger mt-1">Comment is required</div>
+        }
+      </div>
+      <div class="col-md-12 mt-3">
+        <button class="success me-2" matButton="filled" (click)="clickHandler(true)">
+          <mat-icon class="medium-icon fs-5 align-middle">check</mat-icon>
+          Yes
+        </button>
+        <button class="error" matButton="filled" (click)="clickHandler(false)">
+          <mat-icon class="medium-icon align-middle">cancel</mat-icon>
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>

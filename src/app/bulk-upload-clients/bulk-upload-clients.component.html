@@ -1,0 +1,111 @@
+<section class="content professional-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <mat-icon class="header-icon">cloud_upload</mat-icon>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">
+          Bulk Upload Clients
+        </h1>
+        <p class="page-subtitle">Upload and manage client data in bulk</p>
+      </div>
+    </div>
+    <!-- Desktop Actions -->
+    <div class="header-actions d-none d-md-flex">
+      <button mat-raised-button class="refresh-btn py-0" (click)="onUploadSuccess()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+    </div>
+  </div>
+  <mat-card class="professional-card" appearance="outlined">
+    <mat-card-content>
+      <div class="d-flex flex-column gap-3">
+        <div class="d-flex flex-column gap-1">
+          <h2 class="fs-5 mb-0">Upload Clients</h2>
+          <p class="mb-0">Upload clients in bulk using a CSV file. Please ensure your file follows the specified format.
+          </p>
+        </div>
+        <app-bulk-upload (uploadSuccess)="onUploadSuccess()"></app-bulk-upload>
+      </div>
+      <div class="table-container mt-3">
+        <h2 class="fs-5 mb-2">Upload History</h2>
+        <div class="table-responsive">
+          <div class="grid-height-large">
+            <table mat-table [dataSource]="uploadFiles">
+              <ng-container matColumnDef="fileName">
+                <th mat-header-cell *matHeaderCellDef>File Name</th>
+                <td mat-cell *matCellDef="let row">{{ row.fileName }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="uploadedByName">
+                <th mat-header-cell *matHeaderCellDef>Uploaded By</th>
+                <td mat-cell *matCellDef="let row">{{ row.uploadedByName }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="uploadedDate">
+                <th mat-header-cell *matHeaderCellDef>Uploaded Date</th>
+                <td mat-cell *matCellDef="let row">{{ row.uploadedDate | date:'medium' }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="totalRecords">
+                <th mat-header-cell *matHeaderCellDef>Total Records</th>
+                <td mat-cell *matCellDef="let row">{{ row.totalRecords }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="downloadFile">
+                <th mat-header-cell *matHeaderCellDef>Download File</th>
+                <td mat-cell *matCellDef="let row">
+                  <button matButton="filled" class="warning btn"
+                    (click)="onDownloadFile(row); $event.stopPropagation()">
+                    <mat-icon class="medium-icon fs-5 align-middle ms-1">download</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="successCount">
+                <th mat-header-cell *matHeaderCellDef>Success</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="badge bg-success">{{ row.successCount }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="failedCount">
+                <th mat-header-cell *matHeaderCellDef>Failed</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="badge bg-danger">{{ row.failedCount }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="badge" [ngClass]="{
+                  'bg-success': row.status === 'Completed',
+                  'bg-warning': row.status === 'Processing',
+                  'bg-danger': row.status === 'Failed',
+                  'bg-info': row.status !== 'Completed' && row.status !== 'Processing' && row.status !== 'Failed'
+                }">{{ row.status }}</span>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="onRowClick(row)"
+                class="cursor-pointer"></tr>
+              <tr *matNoDataRow>
+                <td colspan="7">
+                  <div class="m-2">
+                    <b>No upload records found.</b>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </mat-card-content>
+  </mat-card>
+</section>
