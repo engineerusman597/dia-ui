@@ -12,6 +12,7 @@ import { FileFailRecordsComponent } from './file-fail-records/file-fail-records.
 import { ClientUploadFile } from './client-upload-file';
 import { BulkUploadClientsService } from './bulk-upload-clients.service';
 import { ToastrService } from 'ngx-toastr';
+import { SendRequestConfirmComponent } from './send-request-confirm/send-request-confirm.component';
 
 @Component({
   selector: 'app-bulk-upload-clients',
@@ -39,9 +40,10 @@ export class BulkUploadClientsComponent implements OnInit {
     'totalRecords',
     'failedCount',
     'successCount',
-    'downloadFile',
+    'sendRequest',
   ];
   isLoading = false;
+  isSending = false;
   bulkUploadClientsService = inject(BulkUploadClientsService);
   private dialog = inject(MatDialog);
   toastrService = inject(ToastrService);
@@ -77,20 +79,33 @@ export class BulkUploadClientsComponent implements OnInit {
     });
   }
 
-  onDownloadFile(row: ClientUploadFile): void {
-    this.bulkUploadClientsService.downloadFile(row.id).subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = row.fileName;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        this.toastrService.success('File downloaded successfully');
-      },
-      error: () => {
-        this.toastrService.error('Failed to download file');
+  // Queues reminders for this upload's clients whose identity or address document
+  // is still pending or rejected. The API picks each client's template from their
+  // own statuses, and re-checks the password before it queues anything.
+  onSendRequest(row: ClientUploadFile): void {
+    const dialogRef = this.dialog.open(SendRequestConfirmComponent, {
+      width: '460px',
+      data: { fileName: row.fileName },
+    });
+
+    dialogRef.afterClosed().subscribe((password: string | null) => {
+      if (!password) {
+        return;
       }
+
+      this.isSending = true;
+      this.bulkUploadClientsService.sendUploadRequest(row.id, password).subscribe({
+        next: () => {
+          this.isSending = false;
+          this.toastrService.success('Reminders queued for this upload\'s pending clients.');
+        },
+        error: (error) => {
+          this.isSending = false;
+          this.toastrService.error(
+            error?.messages?.[0] ?? 'Failed to send requests'
+          );
+        }
+      });
     });
   }
 }

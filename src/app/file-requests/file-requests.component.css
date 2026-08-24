@@ -28,3 +28,21 @@
   padding: 0.45rem 0.7rem;
 }
 
+/* Keep the notify/reminder checkboxes as one group. Material derives the checkbox's
+   padding and margin from its state-layer size (40px by default), which is what
+   spaces the rows apart. Shrinking that one variable tightens the group evenly and
+   keeps each box centred against its label. */
+.request-options {
+  display: flex;
+  flex-direction: column;
+}
+
+.request-options ::ng-deep .mat-mdc-checkbox {
+  --mdc-checkbox-state-layer-size: 26px;
+}
+
+.request-options .form-check-label {
+  margin-bottom: 0;
+  margin-left: 0.25rem;
+}
+

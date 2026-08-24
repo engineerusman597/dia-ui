@@ -26,4 +26,10 @@ export class BulkUploadClientsService {
     const url = `clientUploadedFile/download-file/${fileId}`;
     return this.httpClient.get(url, { responseType: 'blob' });
   }
+
+  // Queues reminders for this upload's clients whose ID or address proof is still
+  // pending or rejected.
+  sendUploadRequest(fileId: string, password: string): Observable<void> {
+    return this.httpClient.post<void>(`FileRequest/upload/${fileId}`, { password });
+  }
 }

@@ -5,7 +5,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatTableModule } from '@angular/material/table';
-import { FileRequest } from './model/file-request';
+import { FileRequest, ReminderType } from './model/file-request';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -52,6 +52,9 @@ import { NgClass } from '@angular/common';
 export class FileRequestsComponent extends BaseComponent implements OnInit, AfterViewInit {
   fileRequests: FileRequest[] = [];
   isAll = false;
+  reminderType = ReminderType;
+  // Only one of "Notify All" / the three reminders can be active at a time.
+  selectedReminderType: ReminderType | null = null;
   clientInput = new FormControl('');
   selectedClients: IdName[] = [];
   filteredClients: IdName[] = [];
@@ -231,9 +234,25 @@ export class FileRequestsComponent extends BaseComponent implements OnInit, Afte
       });
   }
 
+  // "Notify All" and the three reminders are mutually exclusive, so turning one
+  // on clears the others.
+  onIsAllChange(checked: boolean) {
+    this.isAll = checked;
+    if (checked) {
+      this.selectedReminderType = null;
+    }
+  }
+
+  onReminderTypeChange(type: ReminderType, checked: boolean) {
+    this.selectedReminderType = checked ? type : null;
+    if (checked) {
+      this.isAll = false;
+    }
+  }
+
   sendRequest() {
-    if (!this.isAll && this.selectedClients.length === 0) {
-      this.toastrService.error('Please select at least one client or choose "Request All".');
+    if (!this.isAll && this.selectedReminderType === null && this.selectedClients.length === 0) {
+      this.toastrService.error('Please select at least one client, a reminder, or choose "Notify All".');
       return;
     }
     if (this.isAll) {
@@ -244,9 +263,27 @@ export class FileRequestsComponent extends BaseComponent implements OnInit, Afte
           this.getAllFileRequests(this.filterParamters);
         }
       });
+    } else if (this.selectedReminderType !== null && this.selectedClients.length === 0) {
+      // Reminder with no explicit client selection: the API resolves the matching
+      // clients from their outstanding document statuses.
+      this.fileService.updateFileRequest({
+        clientIds: [],
+        isAll: false,
+        reminderType: this.selectedReminderType
+      }).subscribe({
+        next: () => {
+          this.toastrService.success('Reminder queued for all matching clients.');
+          this.resetFileRequest();
+          this.getAllFileRequests(this.filterParamters);
+        }
+      });
     } else if (this.selectedClients.length > 0) {
       const clientIds = this.selectedClients.map(c => c.id);
-      this.fileService.updateFileRequest({ clientIds, isAll: this.isAll }).subscribe({
+      this.fileService.updateFileRequest({
+        clientIds,
+        isAll: this.isAll,
+        reminderType: this.selectedReminderType ?? ReminderType.KycVerification
+      }).subscribe({
         next: () => {
           const names = this.selectedClients.map(c => c.name).join(', ');
           this.toastrService.success('Request sent to: ' + names);
@@ -259,6 +296,7 @@ export class FileRequestsComponent extends BaseComponent implements OnInit, Afte
 
   resetFileRequest() {
     this.isAll = false;
+    this.selectedReminderType = null;
     this.selectedClients = [];
     this.clientInput.setValue('');
     this.filteredClients = [];

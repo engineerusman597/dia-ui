@@ -10,4 +10,14 @@ export interface FileRequest {
 export interface FileRequestResponse {
     clientIds: string[];
     isAll: boolean;
+    reminderType?: ReminderType;
+    isAutoReminder?: boolean;
+    password?: string;
+}
+
+export enum ReminderType {
+    KycVerification = 0,
+    BothPendingRejected = 1,
+    IdPendingRejected = 2,
+    PoaPendingRejected = 3
 }

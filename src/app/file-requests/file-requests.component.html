@@ -22,18 +22,48 @@
   </div>
   <mat-card appearance="outlined">
     <mat-card-content>
-      <!-- Toggle Switch -->
-      <div class="mb-3 d-flex align-items-center">
-        <mat-checkbox [(ngModel)]="isAll"></mat-checkbox>
-        <label class="form-check-label fw-semibold" for="allClientsSwitch">
-          Notify All Clients with Pending Document Uploads
-        </label>
+      <!-- Notify All + reminder types -->
+      <div class="request-options mb-3">
+        <div class="d-flex align-items-center">
+          <mat-checkbox [checked]="isAll" (change)="onIsAllChange($event.checked)"></mat-checkbox>
+          <label class="form-check-label fw-semibold" for="allClientsSwitch">
+            Notify All Clients with Pending Document Uploads
+          </label>
+        </div>
+        <div class="d-flex align-items-center">
+          <mat-checkbox [checked]="selectedReminderType === reminderType.BothPendingRejected"
+            (change)="onReminderTypeChange(reminderType.BothPendingRejected, $event.checked)"></mat-checkbox>
+          <label class="form-check-label fw-semibold">
+            Reminder 1.1 &ndash; Both Pending/Rejected
+          </label>
+        </div>
+        <div class="d-flex align-items-center">
+          <mat-checkbox [checked]="selectedReminderType === reminderType.IdPendingRejected"
+            (change)="onReminderTypeChange(reminderType.IdPendingRejected, $event.checked)"></mat-checkbox>
+          <label class="form-check-label fw-semibold">
+            Reminder 1.2 &ndash; ID Pending/Rejected
+          </label>
+        </div>
+        <div class="d-flex align-items-center">
+          <mat-checkbox [checked]="selectedReminderType === reminderType.PoaPendingRejected"
+            (change)="onReminderTypeChange(reminderType.PoaPendingRejected, $event.checked)"></mat-checkbox>
+          <label class="form-check-label fw-semibold">
+            Reminder 1.3 &ndash; PoA Pending/Rejected
+          </label>
+        </div>
       </div>
       <!-- Info Message -->
       @if(isAll) {
       <div class="alert alert-info d-flex align-items-center py-2 px-3 mb-3">
         <mat-icon class="me-2 text-info">info</mat-icon>
         <span>File request will be sent to <strong>all clients</strong>.</span>
+      </div>
+      }
+      @if(selectedReminderType !== null && selectedClients.length === 0) {
+      <div class="alert alert-info d-flex align-items-center py-2 px-3 mb-3">
+        <mat-icon class="me-2 text-info">info</mat-icon>
+        <span>Reminder will be sent to <strong>all clients matching this document status</strong>, unless you select
+          specific clients below.</span>
       </div>
       }
       <!-- Client Selection -->

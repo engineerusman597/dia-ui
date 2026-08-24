@@ -10,3 +10,37 @@
     max-height: calc(100vh - 400px) !important;
     overflow-y: auto;
 }
+
+/* Material rows are 52px, which leaves the action button filling the row edge to
+   edge. Set the token on the host so it inherits into Material's own row elements,
+   and back it with an explicit height since the token alone is overridden by the
+   theme stylesheet. */
+:host {
+    --mat-table-row-item-container-height: 72px;
+}
+
+:host ::ng-deep .mat-mdc-row {
+    height: 72px;
+}
+
+:host ::ng-deep .mat-mdc-row .mat-mdc-cell {
+    height: 72px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* Keep the action column off the table's right edge and stop the button text
+   wrapping when the column is narrow. */
+.mat-column-sendRequest {
+    width: 1%;
+    white-space: nowrap;
+    padding-right: 16px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* The button is inline-block, so it sits on the cell's text baseline and hangs
+   below the row's midline. Aligning it to the middle centres it in the row. */
+.mat-column-sendRequest button {
+    vertical-align: middle;
+}
