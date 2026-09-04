@@ -47,7 +47,12 @@ export class HttpRequestInterceptor implements HttpInterceptor {
               if (err.status === 401) {
                 this.router.navigate(['login']);
               } else if (err.status === 403) {
-                this.toastrService.error("You don't have right to access this page");
+                // A 403 carrying its own message is a rejected action rather than a
+                // missing permission, and the caller reports it in context.
+                const isRejectedAction = !!(err.error?.[0] ?? err.error?.messages?.[0]);
+                if (!isRejectedAction) {
+                  this.toastrService.error("You don't have right to access this page");
+                }
               } else if (err.error && err.error.length >= 0) {
                 this.toastrService.error(err.error[0]);
               } else if (err.error && err.error?.messages?.length > 0) {

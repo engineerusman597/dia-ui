@@ -5,7 +5,9 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatTableModule } from '@angular/material/table';
-import { FileRequest, ReminderType } from './model/file-request';
+import { FileRequest, FileRequestResponse, ReminderType } from './model/file-request';
+import { MatDialog } from '@angular/material/dialog';
+import { SendRequestConfirmComponent } from '../bulk-upload-clients/send-request-confirm/send-request-confirm.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
@@ -81,6 +83,7 @@ export class FileRequestsComponent extends BaseComponent implements OnInit, Afte
   clientService = inject(ClientService);
   toastrService = inject(ToastrService);
   fileService = inject(FileRequestsService);
+  private dialog = inject(MatDialog);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -255,42 +258,78 @@ export class FileRequestsComponent extends BaseComponent implements OnInit, Afte
       this.toastrService.error('Please select at least one client, a reminder, or choose "Notify All".');
       return;
     }
+
+    // Work out what is being sent, then confirm with the password before the
+    // request leaves the browser.
+    const { payload, target, successMessage } = this.buildSendRequest();
+
+    const dialogRef = this.dialog.open(SendRequestConfirmComponent, {
+      width: '460px',
+      data: {
+        target,
+        send: (password: string) =>
+          this.fileService.updateFileRequest({ ...payload, password }),
+      },
+    });
+
+    this.sub$.sink = dialogRef.afterClosed().subscribe((sent: boolean | null) => {
+      if (sent) {
+        this.toastrService.success(successMessage);
+        this.resetFileRequest();
+        this.getAllFileRequests(this.filterParamters);
+      }
+    });
+  }
+
+  private buildSendRequest(): {
+    payload: FileRequestResponse;
+    target: string;
+    successMessage: string;
+  } {
     if (this.isAll) {
-      this.fileService.updateFileRequest({ clientIds: [], isAll: this.isAll }).subscribe({
-        next: () => {
-          this.toastrService.success('Request sent to all clients.');
-          this.resetFileRequest();
-          this.getAllFileRequests(this.filterParamters);
-        }
-      });
-    } else if (this.selectedReminderType !== null && this.selectedClients.length === 0) {
+      return {
+        payload: { clientIds: [], isAll: true },
+        target: 'all clients with pending document uploads',
+        successMessage: 'Request sent to all clients.',
+      };
+    }
+
+    if (this.selectedReminderType !== null && this.selectedClients.length === 0) {
       // Reminder with no explicit client selection: the API resolves the matching
       // clients from their outstanding document statuses.
-      this.fileService.updateFileRequest({
-        clientIds: [],
+      return {
+        payload: {
+          clientIds: [],
+          isAll: false,
+          reminderType: this.selectedReminderType,
+        },
+        target: this.reminderLabel(this.selectedReminderType),
+        successMessage: 'Reminder queued for all matching clients.',
+      };
+    }
+
+    const names = this.selectedClients.map((c) => c.name).join(', ');
+    return {
+      payload: {
+        clientIds: this.selectedClients.map((c) => c.id),
         isAll: false,
-        reminderType: this.selectedReminderType
-      }).subscribe({
-        next: () => {
-          this.toastrService.success('Reminder queued for all matching clients.');
-          this.resetFileRequest();
-          this.getAllFileRequests(this.filterParamters);
-        }
-      });
-    } else if (this.selectedClients.length > 0) {
-      const clientIds = this.selectedClients.map(c => c.id);
-      this.fileService.updateFileRequest({
-        clientIds,
-        isAll: this.isAll,
-        reminderType: this.selectedReminderType ?? ReminderType.KycVerification
-      }).subscribe({
-        next: () => {
-          const names = this.selectedClients.map(c => c.name).join(', ');
-          this.toastrService.success('Request sent to: ' + names);
-          this.resetFileRequest();
-          this.getAllFileRequests(this.filterParamters);
-        }
-      });
+        reminderType: this.selectedReminderType ?? ReminderType.KycVerification,
+      },
+      target: names,
+      successMessage: 'Request sent to: ' + names,
+    };
+  }
+
+  private reminderLabel(type: ReminderType): string {
+    switch (type) {
+      case ReminderType.BothPendingRejected:
+        return 'every client with both documents pending or rejected';
+      case ReminderType.IdPendingRejected:
+        return 'every client with ID pending or rejected';
+      case ReminderType.PoaPendingRejected:
+        return 'every client with proof of address pending or rejected';
+      default:
+        return 'all matching clients';
     }
   }
 

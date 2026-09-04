@@ -1,36 +1,38 @@
 <h2 mat-dialog-title class="d-flex align-items-center gap-2">
   <mat-icon class="text-warning">warning</mat-icon>
-  Confirm Sending Requests
+  Email Sending Confirmation
 </h2>
 
 <mat-dialog-content>
   <p class="mb-2">
-    This will email the clients from
-    @if (data?.fileName) {
-    <strong>{{ data?.fileName }}</strong>
+    This will email all the clients from
+    @if (data?.target) {
+    <strong>{{ data?.target }}</strong>.
     } @else {
-    <strong>this upload</strong>
+    <strong>this upload</strong>.
     }
-    whose ID or proof of address is still <strong>pending or rejected</strong>.
-    Each client receives the reminder that matches their own document status.
   </p>
   <p class="mb-3">Enter your password to confirm.</p>
 
-  <mat-form-field appearance="outline" class="w-100">
+  <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
     <mat-label>Password</mat-label>
     <input matInput [type]="showPassword ? 'text' : 'password'" name="password" autocomplete="current-password"
-      [(ngModel)]="password" (keyup.enter)="confirm()" />
+      [(ngModel)]="password" (ngModelChange)="onPasswordChange()" (keyup.enter)="confirm()" />
     <button mat-icon-button matSuffix type="button" (click)="showPassword = !showPassword"
       [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
       <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
     </button>
   </mat-form-field>
+
+  @if (errorMessage) {
+  <p class="password-error mb-0" role="alert">{{ errorMessage }}</p>
+  }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="cancel()">Cancel</button>
-  <button mat-raised-button color="primary" type="button" [disabled]="!password" (click)="confirm()">
+  <button mat-button type="button" [disabled]="isSending" (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" type="button" [disabled]="!password || isSending" (click)="confirm()">
     <mat-icon class="medium-icon fs-6 align-middle">send</mat-icon>
-    Send Requests
+    {{ isSending ? 'Sending...' : 'Send Requests' }}
   </button>
 </mat-dialog-actions>

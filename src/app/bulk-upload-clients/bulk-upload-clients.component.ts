@@ -43,7 +43,6 @@ export class BulkUploadClientsComponent implements OnInit {
     'sendRequest',
   ];
   isLoading = false;
-  isSending = false;
   bulkUploadClientsService = inject(BulkUploadClientsService);
   private dialog = inject(MatDialog);
   toastrService = inject(ToastrService);
@@ -79,33 +78,24 @@ export class BulkUploadClientsComponent implements OnInit {
     });
   }
 
-  // Queues reminders for this upload's clients whose identity or address document
-  // is still pending or rejected. The API picks each client's template from their
-  // own statuses, and re-checks the password before it queues anything.
+  // Queues the KYC Verification email for every client from this upload. The API
+  // re-checks the password before it queues anything.
   onSendRequest(row: ClientUploadFile): void {
     const dialogRef = this.dialog.open(SendRequestConfirmComponent, {
       width: '460px',
-      data: { fileName: row.fileName },
+      data: {
+        target: row.fileName,
+        send: (password: string) =>
+          this.bulkUploadClientsService.sendUploadRequest(row.id, password),
+      },
     });
 
-    dialogRef.afterClosed().subscribe((password: string | null) => {
-      if (!password) {
-        return;
+    // The dialog performs the send itself so it can report a rejected password
+    // inline; it closes with true only once the request has succeeded.
+    dialogRef.afterClosed().subscribe((sent: boolean | null) => {
+      if (sent) {
+        this.toastrService.success('KYC Verification email queued for this upload\'s clients.');
       }
-
-      this.isSending = true;
-      this.bulkUploadClientsService.sendUploadRequest(row.id, password).subscribe({
-        next: () => {
-          this.isSending = false;
-          this.toastrService.success('Reminders queued for this upload\'s pending clients.');
-        },
-        error: (error) => {
-          this.isSending = false;
-          this.toastrService.error(
-            error?.messages?.[0] ?? 'Failed to send requests'
-          );
-        }
-      });
     });
   }
 }

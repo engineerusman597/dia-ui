@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://demokyc.diasporainsurance.com/',
+  apiUrl: 'http://localhost:55555/',
 };
 
 /*

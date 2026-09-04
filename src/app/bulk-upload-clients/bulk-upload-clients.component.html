@@ -66,7 +66,7 @@
               <ng-container matColumnDef="sendRequest">
                 <th mat-header-cell *matHeaderCellDef class="text-center">Send Request</th>
                 <td mat-cell *matCellDef="let row">
-                  <button mat-raised-button color="primary" [disabled]="isSending"
+                  <button mat-raised-button color="primary"
                     (click)="onSendRequest(row); $event.stopPropagation()">
                     <mat-icon class="medium-icon fs-6 align-middle">send</mat-icon>
                     Send Request
