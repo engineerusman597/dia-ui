@@ -80,6 +80,15 @@ export class UploadDocumentsComponent implements OnInit {
   documentType = DocumentType;
   documentStatus = RequestStatus;
 
+  /** Section the pending additional documents go into; unset until deliberately chosen. */
+  additionalUploadType: DocumentType | null = null;
+
+  readonly categoryOptions = [
+    { value: DocumentType.AdditionalDocument, label: 'Additional Document' },
+    { value: DocumentType.IdentityProof, label: 'Proof of Id' },
+    { value: DocumentType.AddressProof, label: 'Address Proof' },
+  ];
+
   constructor(
     private dialog: MatDialog,
     private route: ActivatedRoute,
@@ -333,6 +342,13 @@ export class UploadDocumentsComponent implements OnInit {
       return;
     }
 
+    // The category decides which section the file lands in, so refuse until it is set.
+    if (this.additionalUploadType === null) {
+      this.toastr.error('Please select the document type first.');
+      input.value = '';
+      return;
+    }
+
     const maxAdditionalFiles = 10;
 
     const selectedFiles = Array.from(input.files).slice(0, maxAdditionalFiles);
@@ -382,16 +398,22 @@ export class UploadDocumentsComponent implements OnInit {
       return;
     }
 
+    if (this.additionalUploadType === null) {
+      this.toastr.error('Please select the document type first.');
+      return;
+    }
+
     if (this.additionalFiles.length === 0) {
       this.toastr.error('Please choose at least one file.');
       return;
     }
 
+    const uploadType = this.additionalUploadType;
     this.isUploadingAdditional.set(true);
 
     from(this.additionalFiles).pipe(
       concatMap((file) =>
-        this.fileRequestService.uploadAdditionalProof(file, clientId).pipe(
+        this.fileRequestService.uploadAdditionalProof(file, clientId, uploadType).pipe(
           map(() => ({ fileName: file.name, isSuccess: true })),
           catchError(() => of({ fileName: file.name, isSuccess: false }))
         )
@@ -406,6 +428,12 @@ export class UploadDocumentsComponent implements OnInit {
         this.isUploadedAdditionalProof = true;
         this.toastr.success(`${successCount} additional document(s) uploaded successfully.`);
         this.additionalFiles = [];
+        this.additionalDocumentPreviews = [];
+        this.additionalUploadType = null;
+
+        // A file filed as a proof of ID or address belongs in that section, so
+        // reload the client to show it where it actually landed.
+        this.loadClientInfo(clientId);
       }
 
       if (failedCount > 0) {

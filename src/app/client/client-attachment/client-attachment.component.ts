@@ -1,10 +1,13 @@
-import { Component, Input, OnDestroy, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, inject } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormGroup } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { PipesModule } from '@shared/pipes/pipes.module';
 import { BaseComponent } from '../../base.component';
@@ -15,6 +18,9 @@ import { DocumentType } from '../model/document-type';
 import { RequestStatus } from '../model/request-status';
 import { VerifyDocument } from '../model/verify-document';
 import { VerifyDocumentComponent } from 'src/app/verify-document/verify-document.component';
+import { ClientService } from '../services/client.service';
+import { DocumentActionConfirmComponent } from '../document-action-confirm/document-action-confirm.component';
+import { DocumentHistoryComponent } from '../document-history/document-history.component';
 
 type DocumentPreview = {
   isPdf: boolean;
@@ -25,7 +31,7 @@ type DocumentPreview = {
 @Component({
   selector: 'app-client-attachment',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule, NgClass, PipesModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule, FormsModule, NgClass, PipesModule],
   templateUrl: './client-attachment.component.html',
   styleUrls: ['./client-attachment.component.scss'],
 })
@@ -34,24 +40,51 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
   @Input() isEditMode = false;
   @Input() currentClient?: Client;
 
+  /** Raised when a document's category changes, so the parent can reload the client. */
+  @Output() documentsChanged = new EventEmitter<void>();
+
   proofOfIdPreview: DocumentPreview | null = null;
   proofOfAddressPreview: DocumentPreview | null = null;
   additionalDocumentPreviews: DocumentPreview[] = [];
 
   documentType = DocumentType;
+
+  /**
+   * Category chosen for the next additional-document upload. Starts unset so the
+   * uploader has to choose deliberately, and is mirrored onto the form because the
+   * parent owns the upload loop.
+   */
+  additionalUploadType: DocumentType | null = null;
+
   documentStatus = RequestStatus;
 
   get documentList(): ClientDocument[] {
+    // Additional proofs come from their own table, so flag them here: changing a
+    // document's category needs to tell the API which table the id belongs to.
     return [
-      ...(this.currentClient?.clientDocuments ?? []),
-      ...(this.currentClient?.additionalProofDtos ?? [])
+      ...(this.currentClient?.clientDocuments ?? []).map(d => ({ ...d, isAdditionalProof: false })),
+      ...(this.currentClient?.additionalProofDtos ?? []).map(d => ({ ...d, isAdditionalProof: true }))
     ];
   }
+
+  // Categories an admin can move a document into.
+  readonly categoryOptions = [
+    { value: DocumentType.IdentityProof, label: 'Proof of Id' },
+    { value: DocumentType.AddressProof, label: 'Address Proof' },
+    { value: DocumentType.AdditionalDocument, label: 'Additional Document' },
+  ];
+
+  // Decisions an admin can set from the status badge.
+  readonly statusOptions = [
+    { value: RequestStatus.Approved, label: 'Approve', icon: 'check_circle' },
+    { value: RequestStatus.Rejected, label: 'Reject', icon: 'cancel' },
+  ];
 
   private sanitizer = inject(DomSanitizer);
   private fileService = inject(FileRequestService);
   private dialog = inject(MatDialog);
   private toastr = inject(ToastrService);
+  private clientService = inject(ClientService);
 
   onFileSelected(event: Event, control: DocumentType) {
     const input = event.target as HTMLInputElement;
@@ -60,6 +93,13 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
     if(!file && input.files && input.files.length === 0) return;
 
     if (control === DocumentType.AdditionalDocument) {
+      // The category decides which section the file lands in, so refuse until it is set.
+      if (this.additionalUploadType === null) {
+        this.toastr.error('Please select the document type first.');
+        input.value = '';
+        return;
+      }
+
       const maxFiles = 10;
 
       if (input.files && input.files.length > maxFiles) {
@@ -90,7 +130,10 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
 
       this.revokePreviewCollection(this.additionalDocumentPreviews);
       this.additionalDocumentPreviews = previews;
-      this.clientForm.patchValue({ additionalDocument: validFiles });
+      this.clientForm.patchValue({
+        additionalDocument: validFiles,
+        additionalDocumentType: this.additionalUploadType,
+      });
       input.value = '';
       return;
     }
@@ -123,6 +166,11 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
     } catch (error) {
       console.warn('Preview error', error);
     }
+  }
+
+  // Files may already be selected when the category is changed, so keep the form in step.
+  onAdditionalUploadTypeChange(type: DocumentType | null): void {
+    this.clientForm.patchValue({ additionalDocumentType: type });
   }
 
   isValidFile(file: File): boolean {
@@ -251,6 +299,92 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
       error: () => {
         this.toastr.error('Failed to download document');
       }
+    });
+  }
+
+  // Moves a document to another category after confirmation. The parent owns the
+  // client, so ask it to reload once the change lands.
+  changeCategory(doc: ClientDocument, newType: DocumentType): void {
+    if (!doc.id || doc.documentType === newType) {
+      return;
+    }
+
+    const targetLabel = this.categoryOptions.find(o => o.value === newType)?.label ?? 'the selected category';
+
+    const dialogRef = this.dialog.open(DocumentActionConfirmComponent, {
+      width: '460px',
+      data: {
+        title: 'Change document category',
+        message: `Move "${doc.name || 'this document'}" to ${targetLabel}? `
+          + `This updates where the document appears and is recorded against your user.`,
+        confirmLabel: 'Change category',
+        action: () => this.clientService.changeDocumentCategory(
+          doc.id!, newType, doc.isAdditionalProof === true),
+      },
+    });
+
+    this.sub$.sink = dialogRef.afterClosed().subscribe((changed: boolean | null) => {
+      if (changed) {
+        this.toastr.success('Document category updated.');
+        this.documentsChanged.emit();
+      }
+    });
+  }
+
+  /**
+   * Approving or rejecting is recorded against the signed-in user, so confirm it
+   * explicitly and let the dialog report any failure inline. A decision can be
+   * changed later, which is why this stays available once a status is set.
+   */
+  changeStatus(doc: ClientDocument, status: RequestStatus): void {
+    if (!doc.id || doc.documentStatus === status) {
+      return;
+    }
+
+    const isRejection = status === RequestStatus.Rejected;
+    const documentName = doc.name || 'this document';
+    // Overturning an earlier decision deserves a clearer warning than setting one.
+    const isReversal = doc.documentStatus === RequestStatus.Approved
+      || doc.documentStatus === RequestStatus.Rejected;
+    const previousLabel = doc.documentStatus === RequestStatus.Approved ? 'approved' : 'rejected';
+
+    const dialogRef = this.dialog.open(DocumentActionConfirmComponent, {
+      width: '460px',
+      data: {
+        title: isRejection ? 'Reject document' : 'Approve document',
+        message: `${isRejection ? 'Reject' : 'Approve'} "${documentName}"? `
+          + (isReversal ? `This document is currently ${previousLabel}. ` : '')
+          + `Your user and the current date and time will be recorded against this decision.`,
+        confirmLabel: isRejection ? 'Reject' : 'Approve',
+        isDestructive: isRejection,
+        showNote: isRejection,
+        noteLabel: 'Reason for rejection',
+        noteRequired: isRejection,
+        action: (note: string) => this.fileService.verifyDocument({
+          id: doc.id!,
+          documentStatus: status,
+          description: note,
+        }),
+      },
+    });
+
+    this.sub$.sink = dialogRef.afterClosed().subscribe((confirmed: boolean | null) => {
+      if (confirmed) {
+        this.toastr.success(isRejection ? 'Document rejected' : 'Document approved');
+        this.documentsChanged.emit();
+      }
+    });
+  }
+
+  // Full history of uploads, approvals, rejections and category changes.
+  openHistory(doc: ClientDocument): void {
+    if (!this.currentClient?.id) {
+      return;
+    }
+
+    this.dialog.open(DocumentHistoryComponent, {
+      width: '720px',
+      data: { clientId: this.currentClient.id, documentId: doc.id, documentName: doc.name },
     });
   }
 

@@ -123,6 +123,8 @@ export class ManageClient extends BaseComponent implements OnInit {
       proofOfId: [null],
       proofOfAddress: [null],
       additionalDocument: [[]],
+      // Section the pending additional documents should be filed into; unset until chosen.
+      additionalDocumentType: [null],
       assignToId: ['']
     });
   }
@@ -248,7 +250,10 @@ export class ManageClient extends BaseComponent implements OnInit {
   }
 
   private uploadFilesForClient(clientId: string) {
-    const filesToUpload: ClientDocument[] = [];
+    // The two dedicated slots go to the admin-upload endpoint; anything picked in the
+    // additional-document slot goes to the additional-proof endpoint, which files it
+    // into the section the uploader chose.
+    const filesToUpload: (ClientDocument & { isAdditionalSlot?: boolean })[] = [];
 
     const proofId = this.clientForm.get('proofOfId')?.value as File | null;
     const proofAddress = this.clientForm.get('proofOfAddress')?.value as File | null;
@@ -271,13 +276,17 @@ export class ManageClient extends BaseComponent implements OnInit {
 
     const additionalDocuments =
       (this.clientForm.get('additionalDocument')?.value as File[]) || [];
+    const additionalType =
+      (this.clientForm.get('additionalDocumentType')?.value as DocumentType) ??
+      DocumentType.AdditionalDocument;
 
     additionalDocuments.forEach(file => {
       if (file) {
         filesToUpload.push({
           clientId,
-          documentType: DocumentType.AdditionalDocument,
-          file
+          documentType: additionalType,
+          file,
+          isAdditionalSlot: true
         });
       }
     });
@@ -287,10 +296,30 @@ export class ManageClient extends BaseComponent implements OnInit {
     );
   }
 
-  private uploadFileByType(file: ClientDocument) {
-    return file.documentType === DocumentType.AdditionalDocument
-      ? this.fileService.uploadAdditionalProof(file.file as File, file.clientId)
+  private uploadFileByType(file: ClientDocument & { isAdditionalSlot?: boolean }) {
+    return file.isAdditionalSlot
+      ? this.fileService.uploadAdditionalProof(
+          file.file as File,
+          file.clientId,
+          file.documentType ?? DocumentType.AdditionalDocument)
       : this.fileService.uploadFile(file, true);
+  }
+
+  // A document's category changed, so pull the client again to re-sort the
+  // attachment list into its new sections.
+  reloadClientDocuments(): void {
+    const clientId = this.currentClient?.id;
+    if (!clientId) {
+      return;
+    }
+
+    this.sub$.sink = this.clientService.getClient(clientId).subscribe({
+      next: (client) => {
+        if (client) {
+          this.currentClient = client as Client;
+        }
+      },
+    });
   }
 
   downloadClientsCsv() {

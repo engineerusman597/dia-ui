@@ -1,0 +1,12 @@
+.w-100 {
+  width: 100%;
+}
+
+/* Matches Material's error styling but sits outside the form field, so it stays
+   visible whether or not the note input is shown. */
+.action-error {
+  color: var(--mdc-theme-error, #f44336);
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 8px;
+}

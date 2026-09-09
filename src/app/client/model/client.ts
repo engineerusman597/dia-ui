@@ -19,6 +19,11 @@ export interface Client {
   clientDocuments?: ClientDocument[];
   identityProofStatus?: RequestStatus;
   addressProofStatus?: RequestStatus;
+  // Upload and decision timestamps for the latest proof of each kind.
+  identityProofUploadedDate?: Date | string;
+  identityProofStatusChangedDate?: Date | string;
+  addressProofUploadedDate?: Date | string;
+  addressProofStatusChangedDate?: Date | string;
   policies?: string[]; // Assuming policies is an array of strings, adjust as needed
   additionalProofDtos?: ClientDocument[]; // Adjust type as needed
   proofOfAddressRejecteReason?: string;

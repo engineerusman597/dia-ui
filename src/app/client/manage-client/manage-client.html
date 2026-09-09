@@ -168,7 +168,8 @@
           </div>
 
           <app-client-attachment [clientForm]="clientForm" [isEditMode]="isEditMode"
-            [currentClient]="currentClient"></app-client-attachment>
+            [currentClient]="currentClient"
+            (documentsChanged)="reloadClientDocuments()"></app-client-attachment>
 
           <div class="col-md-12 my-3 d-flex">
             <button type="submit" (click)="saveClient()" class="success me-2 btn" matButton="filled">

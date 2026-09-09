@@ -48,8 +48,25 @@
 
   <div class="col-md-6 mt-2">
     <label class="form-label">Additional Document</label>
-    <input type="file" accept=".png,.jpg,.jpeg,.pdf" class="form-control"
-      (change)="onFileSelected($event, documentType.AdditionalDocument)" multiple />
+    <!-- Pick the category first so the file lands in the right section. -->
+    <select class="form-select mb-2" [(ngModel)]="additionalUploadType" [ngModelOptions]="{ standalone: true }"
+      matTooltip="Choose which section this document belongs to before selecting a file"
+      matTooltipPosition="above" (ngModelChange)="onAdditionalUploadTypeChange($event)">
+      <option [ngValue]="null" disabled>-- Select document type --</option>
+      @for (option of categoryOptions; track option.value) {
+      <option [ngValue]="option.value">{{ option.label }}</option>
+      }
+    </select>
+    <span [matTooltip]="additionalUploadType === null ? 'Select the document type first' : ''"
+      matTooltipPosition="above">
+      <input type="file" accept=".png,.jpg,.jpeg,.pdf" class="form-control"
+        [disabled]="additionalUploadType === null"
+        title="{{ additionalUploadType === null ? 'Select the document type first' : '' }}"
+        (change)="onFileSelected($event, documentType.AdditionalDocument)" multiple />
+    </span>
+    @if (additionalUploadType === null) {
+    <div class="form-text">Select the document type first.</div>
+    }
   </div>
 </div>
 
@@ -80,7 +97,16 @@
           <mat-icon class="medium-icon fs-5 text-danger align-middle me-2">description</mat-icon>
           {{ doc.name || 'Unknown' }}
         </strong>
-        <span class="fw-medium text-muted">{{ doc.createdDate | utcToLocalTime:'short' }}</span>
+        <span class="fw-medium text-muted">
+          Uploaded {{ (doc.createdDate || doc.uploadedDate) | utcToLocalTime:'short' }}
+        </span>
+        @if (doc.statusChangedDate) {
+        <span class="fw-medium text-muted">
+          {{ doc.documentStatus === documentStatus.Approved ? 'Approved' : 'Reviewed' }}
+          {{ doc.statusChangedDate | utcToLocalTime:'short' }}
+          @if (doc.statusChangedByName) { by {{ doc.statusChangedByName }} }
+        </span>
+        }
       </div>
       <div class="d-flex flex-column align-items-end gap-2">
         <div class="mt-1">
@@ -90,19 +116,46 @@
           <button matButton="filled" class="primary me-2" (click)="openVerify(doc)">
             <mat-icon class="medium-icon fs-5 align-middle ms-1">visibility</mat-icon>
           </button>
-          <span class="badge bg-secondary px-3 py-2 me-2" style="font-size:12px">
-            {{ doc.documentType | documentType }}
-          </span>
+          <button matButton="filled" class="secondary me-2" title="View history" (click)="openHistory(doc)">
+            <mat-icon class="medium-icon fs-5 align-middle ms-1">history</mat-icon>
+          </button>
 
+          <!-- Admins can move a document between the three categories. -->
+          <button mat-button [matMenuTriggerFor]="categoryMenu" class="badge bg-secondary px-3 py-2 me-2 border-0"
+            style="font-size:12px" title="Change category">
+            {{ doc.documentType | documentType }}
+            <mat-icon class="medium-icon fs-6 align-middle">arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #categoryMenu="matMenu">
+            @for (option of categoryOptions; track option.value) {
+            <button mat-menu-item [disabled]="doc.documentType === option.value"
+              (click)="changeCategory(doc, option.value)">
+              {{ option.label }}
+            </button>
+            }
+          </mat-menu>
+
+          <!-- The status badge doubles as the approve / reject control. -->
           @if(doc.documentType !== documentType.AdditionalDocument) {
-          <span class="badge px-3 py-2" [ngClass]="{
+          <button mat-button [matMenuTriggerFor]="statusMenu" class="badge px-3 py-2 border-0" [ngClass]="{
               'bg-secondary': doc.documentStatus === documentStatus.Uploaded,
               'bg-danger': doc.documentStatus === documentStatus.Rejected,
               'bg-primary': doc.documentStatus === documentStatus.Pending,
               'bg-success': doc.documentStatus === documentStatus.Approved
-            }" style="font-size:12px">
+            }" style="font-size:12px" title="Change status">
             {{ doc.documentStatus | requestStatus }}
-          </span>
+            <mat-icon class="medium-icon fs-6 align-middle">arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #statusMenu="matMenu">
+            @for (option of statusOptions; track option.value) {
+            <button mat-menu-item [disabled]="doc.documentStatus === option.value"
+              (click)="changeStatus(doc, option.value)">
+              <mat-icon [class.text-success]="option.value === documentStatus.Approved"
+                [class.text-danger]="option.value === documentStatus.Rejected">{{ option.icon }}</mat-icon>
+              {{ option.label }}
+            </button>
+            }
+          </mat-menu>
           }
         </div>
         @if(doc.documentStatus === documentStatus.Rejected && doc.description) {

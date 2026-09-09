@@ -80,6 +80,16 @@ export class SupportTeamUploadDocumentComponent {
 
   documentType = DocumentType;
   documentStatus = RequestStatus;
+
+  /** Section the pending additional documents go into; unset until deliberately chosen. */
+  additionalUploadType: DocumentType | null = null;
+
+  readonly categoryOptions = [
+    { value: DocumentType.AdditionalDocument, label: 'Additional Document' },
+    { value: DocumentType.IdentityProof, label: 'Proof of Id' },
+    { value: DocumentType.AddressProof, label: 'Address Proof' },
+  ];
+
   currentDocumentStatusforIdProof: number | null = null;
   currentDocumentStatusforAddressProof: number | null = null;
 
@@ -346,6 +356,13 @@ export class SupportTeamUploadDocumentComponent {
       return;
     }
 
+    // The category decides which section the file lands in, so refuse until it is set.
+    if (this.additionalUploadType === null) {
+      this.toastr.error('Please select the document type first.');
+      input.value = '';
+      return;
+    }
+
     const maxAdditionalFiles = 10;
 
     const selectedFiles = Array.from(input.files).slice(0, maxAdditionalFiles);
@@ -459,7 +476,45 @@ export class SupportTeamUploadDocumentComponent {
       // If at least one upload succeeded and none failed, reset upload fields for next client
       if (successCount > 0 && failCount === 0) {
         this.resetForNextClient();
+      } else if (successCount > 0) {
+        // Some uploads landed but the client stays on screen, so refresh it: a file
+        // filed as a proof of ID or address belongs in that section, not the
+        // additional list it was chosen from.
+        this.reloadCurrentClient();
       }
+    });
+  }
+
+  /**
+   * Pulls the client again so each document appears in the section it was filed
+   * into, without clearing the search the way resetForNextClient does.
+   */
+  private reloadCurrentClient(): void {
+    const clientId = this.clientInfo?.id || this.clientId;
+    if (!clientId) {
+      return;
+    }
+
+    this.clientService.getClientInfo(clientId).subscribe({
+      next: (client) => {
+        const clientData = client as Client;
+        if (!clientData) {
+          return;
+        }
+
+        this.clientInfo = clientData;
+        this.additionalDocumentPreviews = [];
+
+        if (clientData.clientDocuments) {
+          this.setDocuement(clientData.clientDocuments);
+        }
+        if (clientData.additionalProofDtos) {
+          this.setAdditionalProofs(clientData.additionalProofDtos);
+        }
+
+        this.currentDocumentStatusforIdProof = this.getDocumentStatus(this.documentType.IdentityProof);
+        this.currentDocumentStatusforAddressProof = this.getDocumentStatus(this.documentType.AddressProof);
+      },
     });
   }
 
@@ -468,6 +523,7 @@ export class SupportTeamUploadDocumentComponent {
     this.idFile = null;
     this.addressProofFile = null;
     this.additionalFiles = [];
+    this.additionalUploadType = null;
 
     // Reset previews to sample images
     this.idProofDoc = { isPdf: false, url: this.sampleIdUrl };
@@ -541,9 +597,10 @@ export class SupportTeamUploadDocumentComponent {
   }
 
   private uploadAdditionalFilesBatch(clientId: string): Observable<{ success: boolean; message: string }> {
+    const uploadType = this.additionalUploadType ?? DocumentType.AdditionalDocument;
     return from(this.additionalFiles).pipe(
       concatMap((file) =>
-        this.fileRequestService.uploadAdditionalProof(file, clientId).pipe(
+        this.fileRequestService.uploadAdditionalProof(file, clientId, uploadType).pipe(
           map(() => ({ fileName: file.name, isSuccess: true })),
           catchError(() => of({ fileName: file.name, isSuccess: false }))
         )

@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ClientDocument } from '../model/client-documents';
+import { DocumentType } from '../model/document-type';
 import { VerifyDocument } from 'src/app/client/model/verify-document';
 
 @Injectable({ providedIn: 'root' })
@@ -47,12 +48,21 @@ export class FileRequestService {
     return this.http.put<void>(url, data);
   }
 
-  uploadAdditionalProof(file: File, clientId: string): Observable<void> {
+  /**
+   * The uploader picks the category, so pass it through: the API files identity and
+   * address proofs into the reviewed sections and everything else as an additional proof.
+   */
+  uploadAdditionalProof(
+    file: File,
+    clientId: string,
+    documentType: DocumentType = DocumentType.AdditionalDocument
+  ): Observable<void> {
     const url = 'ClientDocument/upload-additional-proof';
     const form = new FormData();
     if (clientId) {
       form.append('ClientId', clientId);
     }
+    form.append('DocumentType', documentType.toString());
     if (file) {
       form.append('file', file, file.name);
     }

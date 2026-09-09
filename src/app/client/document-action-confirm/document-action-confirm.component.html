@@ -1,0 +1,27 @@
+<h2 mat-dialog-title class="d-flex align-items-center gap-2">
+  <mat-icon [class.text-danger]="data.isDestructive" [class.text-warning]="!data.isDestructive">warning</mat-icon>
+  {{ data.title }}
+</h2>
+
+<mat-dialog-content>
+  <p class="mb-3">{{ data.message }}</p>
+
+  @if (data.showNote) {
+  <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
+    <mat-label>{{ data.noteLabel || 'Note' }}</mat-label>
+    <textarea matInput rows="3" name="note" [(ngModel)]="note" (ngModelChange)="onNoteChange()"></textarea>
+  </mat-form-field>
+  }
+
+  @if (errorMessage) {
+  <p class="action-error mb-0" role="alert">{{ errorMessage }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" [disabled]="isSaving" (click)="cancel()">Cancel</button>
+  <button mat-raised-button type="button" [color]="data.isDestructive ? 'warn' : 'primary'"
+    [disabled]="!canConfirm" (click)="confirm()">
+    {{ isSaving ? 'Saving...' : data.confirmLabel }}
+  </button>
+</mat-dialog-actions>

@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Inject } from '@angular/core';
 import { Client } from 'src/app/client/model/client';
 import { ClientDocument } from 'src/app/client/model/client-documents';
@@ -19,6 +19,8 @@ import { ClientStore } from '../client/client-store';
 import { ClientPendingApprovalStore } from '../dashboard/clients-pending-approval/clients-pending-approval-store';
 import { ClientRejectedDocumentStore } from '../dashboard/clients-reject-document/clients-reject-document-store';
 import { PdfViewerComponent } from '@core/pdf-viewer/pdf-viewer.component';
+import { DocumentActionConfirmComponent } from '../client/document-action-confirm/document-action-confirm.component';
+import { DocumentHistoryComponent } from '../client/document-history/document-history.component';
 
 @Component({
   selector: 'app-verify-document',
@@ -41,6 +43,7 @@ export class VerifyDocumentComponent {
   hasDocumentBeenUpdated = false;
 
   commonDialogService = inject(CommonDialogService);
+  dialog = inject(MatDialog);
   clientService = inject(ClientService);
   sanitizer = inject(DomSanitizer);
   fileRequestService = inject(FileRequestService);
@@ -110,55 +113,85 @@ export class VerifyDocumentComponent {
   }
 
   onApprove(doc: ClientDocument) {
-    this.commonDialogService.deleteConformationDialog('Are you sure you want to approve this document?').subscribe(confirmed => {
-      if (confirmed) {
-        const verifyData: VerifyDocument = {
-          id: doc.id!,
-          documentStatus: RequestStatus.Approved,
-          description: ''
-        };
+    this.confirmStatusChange(doc, RequestStatus.Approved);
+  }
 
-        this.updateDocumentStatus(verifyData);
+  onReject(doc: ClientDocument) {
+    this.confirmStatusChange(doc, RequestStatus.Rejected);
+  }
+
+  /**
+   * Approving or rejecting is recorded against the signed-in user, so confirm it
+   * explicitly and let the dialog report any failure inline.
+   */
+  private confirmStatusChange(doc: ClientDocument, status: RequestStatus) {
+    if (!doc?.id) {
+      return;
+    }
+
+    const isRejection = status === RequestStatus.Rejected;
+    const documentName = doc.name || 'this document';
+
+    const ref = this.dialog.open(DocumentActionConfirmComponent, {
+      width: '460px',
+      data: {
+        title: isRejection ? 'Reject document' : 'Approve document',
+        message: `${isRejection ? 'Reject' : 'Approve'} "${documentName}"? `
+          + `Your user and the current date and time will be recorded against this decision.`,
+        confirmLabel: isRejection ? 'Reject' : 'Approve',
+        isDestructive: isRejection,
+        showNote: isRejection,
+        noteLabel: 'Reason for rejection',
+        noteRequired: isRejection,
+        action: (note: string) => this.fileRequestService.verifyDocument({
+          id: doc.id!,
+          documentStatus: status,
+          description: note,
+        }),
+      },
+    });
+
+    ref.afterClosed().subscribe((confirmed: boolean | null) => {
+      if (confirmed) {
+        this.onStatusChanged({ id: doc.id!, documentStatus: status, description: '' });
       }
     });
   }
 
-  onReject(doc: ClientDocument) {
-    this.commonDialogService
-      .deleteConfirmWithCommentDialog('Are you sure you want to reject this document?')
-      .subscribe((data: { flag: boolean; comment: string }) => {
-        if (data.flag) {
-          const verifyData: VerifyDocument = {
-            id: doc.id!,
-            documentStatus: RequestStatus.Rejected,
-            description: data.comment
-          };
+  // The status change has already been saved; refresh the stores and this view.
+  private onStatusChanged(data: VerifyDocument) {
+    data.documentStatus === RequestStatus.Approved
+      ? this.toaster.success('Document approved')
+      : this.toaster.success('Document rejected');
 
-          this.updateDocumentStatus(verifyData);
-        }
-      });
+    this.clientStore.loadByQuery(this.clientStore.filterParameters());
+    this.clientPendingApprovalStore.loadByQuery(this.clientPendingApprovalStore.filterParameters());
+    this.clientRejectedDocumentStore.loadByQuery(this.clientRejectedDocumentStore.filterParameters());
+
+    if (this.data.isClientView) {
+      this.dialogRef.close(data);
+      return;
+    }
+
+    const found = this.documents.find(d => d.id === data.id);
+    if (found) {
+      found.documentStatus = data.documentStatus;
+      found.statusChangedDate = new Date().toISOString();
+      found.documentType === DocumentType.IdentityProof
+        ? this.client!.identityProofStatus = data.documentStatus
+        : this.client!.addressProofStatus = data.documentStatus;
+    }
   }
 
-  updateDocumentStatus(data: VerifyDocument) {
-    this.fileRequestService.verifyDocument(data).subscribe({
-      next: () => {
-        data.documentStatus === RequestStatus.Approved ? this.toaster.success('Document approved') : this.toaster.success('Document rejected');
-        this.clientStore.loadByQuery(this.clientStore.filterParameters());
-        this.clientPendingApprovalStore.loadByQuery(this.clientPendingApprovalStore.filterParameters());
-        this.clientRejectedDocumentStore.loadByQuery(this.clientRejectedDocumentStore.filterParameters());
-        if (this.data.isClientView) {
-          this.dialogRef.close(data);
-          return;
-        }
-        const found = this.documents.find(d => d.id === data.id);
-        if (found) {
-          found.documentStatus = data.documentStatus;
-          found.documentType === DocumentType.IdentityProof ? this.client!.identityProofStatus = data.documentStatus : this.client!.addressProofStatus = data.documentStatus;
-        }
-      },
-      error: () => {
-        this.toaster.error('Failed to approve document');
-      }
+  // Full upload / approval / rejection trail for this document.
+  openHistory(doc: ClientDocument) {
+    if (!this.client?.id) {
+      return;
+    }
+
+    this.dialog.open(DocumentHistoryComponent, {
+      width: '720px',
+      data: { clientId: this.client.id, documentId: doc.id, documentName: doc.name },
     });
   }
 

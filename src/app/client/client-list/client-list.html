@@ -135,6 +135,18 @@
                               }">
                   {{ client.identityProofStatus | requestStatus}}
                 </span>
+                <!-- Dates sit under the badge rather than in their own column. -->
+                @if (client.identityProofUploadedDate) {
+                <div class="small text-muted text-nowrap mt-1">
+                  Uploaded: {{ client.identityProofUploadedDate | utcToLocalTime:'short' }}
+                </div>
+                }
+                @if (client.identityProofStatusChangedDate) {
+                <div class="small text-muted text-nowrap">
+                  {{ client.identityProofStatus === documentStatusEnum.Approved ? 'Approved' : 'Reviewed' }}:
+                  {{ client.identityProofStatusChangedDate | utcToLocalTime:'short' }}
+                </div>
+                }
               </td>
             </ng-container>
 
@@ -153,6 +165,18 @@
                               }">
                   {{ client.addressProofStatus | requestStatus}}
                 </span>
+                <!-- Dates sit under the badge rather than in their own column. -->
+                @if (client.addressProofUploadedDate) {
+                <div class="small text-muted text-nowrap mt-1">
+                  Uploaded: {{ client.addressProofUploadedDate | utcToLocalTime:'short' }}
+                </div>
+                }
+                @if (client.addressProofStatusChangedDate) {
+                <div class="small text-muted text-nowrap">
+                  {{ client.addressProofStatus === documentStatusEnum.Approved ? 'Approved' : 'Reviewed' }}:
+                  {{ client.addressProofStatusChangedDate | utcToLocalTime:'short' }}
+                </div>
+                }
               </td>
             </ng-container>
 
@@ -276,7 +300,7 @@
             </ng-container>
 
             <ng-container matColumnDef="footer" sticky>
-              <td mat-footer-cell colspan="12" *matFooterCellDef>
+              <td mat-footer-cell colspan="16" *matFooterCellDef>
                 <mat-paginator [length]="filterParameters().totalCount"
                   [pageIndex]="filterParameters().skip / filterParameters().pageSize"
                   [pageSize]="filterParameters().pageSize" [pageSizeOptions]="pageOption" showFirstLastButtons
@@ -285,7 +309,7 @@
               </td>
             </ng-container>
             <tr *matNoDataRow>
-              <td colspan="12">
+              <td colspan="16">
                 <div class="m-2">
                   <b> No Data Found </b>
                 </div>

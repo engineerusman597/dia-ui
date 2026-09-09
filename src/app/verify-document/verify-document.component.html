@@ -51,6 +51,23 @@
           <span class="fw-semibold me-1" style="color:#d4af37">Type:</span>
           <span class="fw-bold">{{ doc.documentType | documentType }}</span>
         </div>
+        @if(doc.createdDate || doc.uploadedDate) {
+        <div class="d-flex align-items-center me-4 mb-2 mb-md-0">
+          <span class="fw-semibold me-1" style="color:#d4af37">Uploaded:</span>
+          <span class="fw-bold">{{ (doc.createdDate || doc.uploadedDate) | utcToLocalTime:'short' }}</span>
+        </div>
+        }
+        @if(doc.statusChangedDate) {
+        <div class="d-flex align-items-center me-4 mb-2 mb-md-0">
+          <span class="fw-semibold me-1" style="color:#d4af37">
+            {{ doc.documentStatus === documentStatus.Approved ? 'Approved:' : 'Reviewed:' }}
+          </span>
+          <span class="fw-bold">
+            {{ doc.statusChangedDate | utcToLocalTime:'short' }}
+            @if(doc.statusChangedByName) { by {{ doc.statusChangedByName }} }
+          </span>
+        </div>
+        }
         @if(doc.expiryDate) {
         <div class="d-flex align-items-center me-4 mb-2 mb-md-0">
           <span class="fw-semibold me-1" style="color:#d4af37">{{ doc.documentType === documentType.IdentityProof ?
@@ -78,6 +95,10 @@
         }
         }
         <div class="d-flex align-items-center mt-md-2 mt-sm-0 ms-auto gap-2">
+          <button class="btn btn-secondary rounded-circle" style="padding:5px 8px" (click)="openHistory(doc)"
+            aria-label="View history" title="View history">
+            <mat-icon class='medium-icon fs-5 align-middle'>history</mat-icon>
+          </button>
           <button class="btn btn-warning rounded-circle" style="padding:5px 8px" (click)="download(doc)"
             aria-label="Download">
             <mat-icon class='medium-icon fs-5 align-middle'>download</mat-icon>

@@ -1,0 +1,47 @@
+<h2 mat-dialog-title class="d-flex align-items-center gap-2">
+  <mat-icon>history</mat-icon>
+  Document History
+</h2>
+
+<mat-dialog-content>
+  @if (data.documentName) {
+  <p class="text-muted mb-3">{{ data.documentName }}</p>
+  }
+
+  @if (isLoading) {
+  <div class="d-flex justify-content-center py-4">
+    <mat-spinner diameter="32"></mat-spinner>
+  </div>
+  } @else if (errorMessage) {
+  <p class="history-error mb-0" role="alert">{{ errorMessage }}</p>
+  } @else if (history.length === 0) {
+  <p class="text-muted mb-0">No history recorded for this document yet.</p>
+  } @else {
+  <ul class="history-list">
+    @for (entry of history; track entry.id) {
+    <li class="history-item">
+      <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div class="d-flex flex-column">
+          <span class="badge {{ badgeClass(entry) }} align-self-start mb-1">{{ actionLabel(entry) }}</span>
+          <strong class="history-detail">{{ changeDetail(entry) }}</strong>
+          @if (entry.documentName) {
+          <span class="text-muted small">{{ entry.documentName }}</span>
+          }
+          @if (entry.note) {
+          <span class="history-note">{{ entry.note }}</span>
+          }
+        </div>
+        <div class="d-flex flex-column align-items-end text-muted small">
+          <span>{{ entry.changedDate | utcToLocalTime:'short' }}</span>
+          <span>{{ entry.changedByName || 'Unknown user' }}</span>
+        </div>
+      </div>
+    </li>
+    }
+  </ul>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()">Close</button>
+</mat-dialog-actions>

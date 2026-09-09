@@ -8,6 +8,8 @@ import { CommonHttpErrorService } from '@core/error-handler/common-http-error.se
 import { SecurityService } from '@core/security/security.service';
 import { Client } from '../model/client';
 import { ClientResource } from '../model/client-resource';
+import { ClientDocumentAudit } from '../model/client-documents';
+import { DocumentType } from '../model/document-type';
 
 @Injectable({
   providedIn: 'root',
@@ -244,6 +246,32 @@ export class ClientService {
 
     return this.httpClient
       .post<void>(url, payload)
+      .pipe(catchError(this.commonHttpErrorService.handleError));
+  }
+
+  // Moves a document between Proof of Id, Address Proof and Additional Documents.
+  // Additional proofs live in their own table, so the API needs to know which one
+  // the id refers to.
+  changeDocumentCategory(
+    id: string,
+    newDocumentType: DocumentType,
+    isAdditionalProof: boolean
+  ): Observable<void | CommonError> {
+    const url = `ClientDocument/document-category/${id}`;
+    return this.httpClient
+      .put<void>(url, { newDocumentType, isAdditionalProof })
+      .pipe(catchError(this.commonHttpErrorService.handleError));
+  }
+
+  // Full upload/approval/rejection/category history for a client's documents.
+  getDocumentAuditHistory(
+    clientId: string,
+    documentId?: string
+  ): Observable<ClientDocumentAudit[] | CommonError> {
+    const url = `ClientDocument/audit-history/${clientId}`;
+    const params = documentId ? new HttpParams().set('documentId', documentId) : undefined;
+    return this.httpClient
+      .get<ClientDocumentAudit[]>(url, { params })
       .pipe(catchError(this.commonHttpErrorService.handleError));
   }
 
