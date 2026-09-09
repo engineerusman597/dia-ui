@@ -172,6 +172,35 @@ export class UploadDocumentsComponent implements OnInit {
     return allowedTypes.includes(file.type);
   }
 
+  /**
+   * The extension only says what a file claims to be. Ask the browser to decode it as
+   * well, so a file that is not really a picture — one copied out of storage, say — is
+   * caught here with a clear message instead of being uploaded and later showing an
+   * empty preview. PDFs are not decodable this way and are left to the server.
+   */
+  private isDecodableImage(file: File): Promise<boolean> {
+    const isPdf = file.type === 'application/pdf'
+      || file.name.split('.').pop()?.toLowerCase() === 'pdf';
+
+    if (isPdf) {
+      return Promise.resolve(true);
+    }
+
+    return new Promise<boolean>((resolve) => {
+      const objectUrl = URL.createObjectURL(file);
+      const probe = new Image();
+
+      const done = (isReadable: boolean) => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(isReadable);
+      };
+
+      probe.onload = () => done(probe.naturalWidth > 0 && probe.naturalHeight > 0);
+      probe.onerror = () => done(false);
+      probe.src = objectUrl;
+    });
+  }
+
   getMimeType(fileName: string): string {
     const ext = fileName.split('.').pop()?.toLowerCase();
 
@@ -270,7 +299,7 @@ export class UploadDocumentsComponent implements OnInit {
     );
   }
 
-  onFileSelected(event: Event, type: DocumentType) {
+  async onFileSelected(event: Event, type: DocumentType) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
@@ -298,6 +327,14 @@ export class UploadDocumentsComponent implements OnInit {
         this.addressProofFile = null;
         this.addressProofDoc = { isPdf: false, url: this.sampleAddressUrl };
       }
+      return;
+    }
+
+    if (!await this.isDecodableImage(file)) {
+      this.toastr.error(
+        `${file.name} could not be read as an image. Please upload the original photo, scan or PDF.`
+      );
+      input.value = '';
       return;
     }
 
@@ -336,7 +373,7 @@ export class UploadDocumentsComponent implements OnInit {
     });
   }
 
-  onAdditionalFilesSelected(event: Event) {
+  async onAdditionalFilesSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) {
       return;
@@ -361,26 +398,33 @@ export class UploadDocumentsComponent implements OnInit {
     const validFiles: File[] = [];
     const previews: DocumentPreview[] = [];
 
-    selectedFiles.forEach((file) => {
+    for (const file of selectedFiles) {
       if (!this.isValidFileType(file)) {
         this.toastr.error(`Invalid file type: ${file.name}`);
-        return;
+        continue;
       }
 
       if (file.size > maxSizeBytes) {
         this.toastr.error(`File ${file.name} exceeds 8MB.`);
-        return;
+        continue;
+      }
+
+      if (!await this.isDecodableImage(file)) {
+        this.toastr.error(
+          `${file.name} could not be read as an image. Please upload the original photo, scan or PDF.`
+        );
+        continue;
       }
 
       const preview = this.createPreview(file);
       if (!preview) {
         this.toastr.error(`Could not create preview for file: ${file.name}`);
-        return;
+        continue;
       }
 
       validFiles.push(file);
       previews.push(preview);
-    });
+    }
 
     this.additionalDocumentPreviews = [
       ...(this.additionalDocumentPreviews || []),

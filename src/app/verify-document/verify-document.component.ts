@@ -79,12 +79,42 @@ export class VerifyDocumentComponent {
   }
 
   loadDocument(clientId: string) {
-    this.clientService.getClientInfo(clientId).subscribe({
+    // Ask for the document list without the file content: the files are over 99% of
+    // that response, and each one is fetched below only when it is shown.
+    this.clientService.getClientInfo(clientId, false).subscribe({
       next: (res) => {
         const clientInfo = res as Client;
         this.client = clientInfo;
-        this.documents = this.processDocuments(clientInfo.clientDocuments ?? []);
+        this.documents = clientInfo.clientDocuments ?? [];
+        this.documents.forEach((doc) => this.loadFile(doc));
       }
+    });
+  }
+
+  /** Pulls one document's content and renders it in place once it arrives. */
+  private loadFile(doc: ClientDocument): void {
+    if (!doc?.id || doc.fileBytes || doc.isLoadingFile) {
+      return;
+    }
+
+    doc.isLoadingFile = true;
+
+    const file$ = doc.documentType === DocumentType.AdditionalDocument
+      ? this.fileRequestService.getClientAdditionalDocument(doc.id)
+      : this.fileRequestService.getClientDocument(doc.id);
+
+    file$.subscribe({
+      next: (res: { fileBytes: string }) => {
+        doc.isLoadingFile = false;
+        if (res?.fileBytes) {
+          doc.fileBytes = res.fileBytes;
+          this.transformDocument(doc);
+        }
+      },
+      error: () => {
+        doc.isLoadingFile = false;
+        doc.fileLoadFailed = true;
+      },
     });
   }
 

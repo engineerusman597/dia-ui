@@ -86,7 +86,7 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
   private toastr = inject(ToastrService);
   private clientService = inject(ClientService);
 
-  onFileSelected(event: Event, control: DocumentType) {
+  async onFileSelected(event: Event, control: DocumentType) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
@@ -110,10 +110,17 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
       const validFiles: File[] = [];
       const previews: DocumentPreview[] = [];
 
-      selectedFiles.forEach((selectedFile) => {
+      for (const selectedFile of selectedFiles) {
         if (!this.isValidFile(selectedFile)) {
           this.toastr.error(`Invalid file type: ${selectedFile.name}`);
-          return;
+          continue;
+        }
+
+        if (!await this.isDecodableImage(selectedFile)) {
+          this.toastr.error(
+            `${selectedFile.name} could not be read as an image. Please upload the original photo, scan or PDF.`
+          );
+          continue;
         }
 
         validFiles.push(selectedFile);
@@ -126,7 +133,7 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
         } catch (error) {
           console.warn('Preview error', error);
         }
-      });
+      }
 
       this.revokePreviewCollection(this.additionalDocumentPreviews);
       this.additionalDocumentPreviews = previews;
@@ -140,6 +147,14 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
 
     if (!this.isValidFile(file as File)) {
       this.toastr.error(`Invalid file type: ${file?.name}`);
+      return;
+    }
+
+    if (!await this.isDecodableImage(file as File)) {
+      this.toastr.error(
+        `${file?.name} could not be read as an image. Please upload the original photo, scan or PDF.`
+      );
+      input.value = '';
       return;
     }
 
@@ -180,6 +195,35 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
     const extension = file.name.split('.').pop()?.toLowerCase() || '';
 
     return allowedMimes.includes(fileType) || allowedExts.includes(extension);
+  }
+
+  /**
+   * The extension only says what a file claims to be. Ask the browser to decode it as
+   * well, so a file that is not really a picture — one copied out of storage, say — is
+   * caught here with a clear message instead of being uploaded and later showing an
+   * empty preview. PDFs are not decodable this way and are left to the server.
+   */
+  private isDecodableImage(file: File): Promise<boolean> {
+    const isPdf = file.type === 'application/pdf'
+      || file.name.split('.').pop()?.toLowerCase() === 'pdf';
+
+    if (isPdf) {
+      return Promise.resolve(true);
+    }
+
+    return new Promise<boolean>((resolve) => {
+      const objectUrl = URL.createObjectURL(file);
+      const probe = new Image();
+
+      const done = (isReadable: boolean) => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(isReadable);
+      };
+
+      probe.onload = () => done(probe.naturalWidth > 0 && probe.naturalHeight > 0);
+      probe.onerror = () => done(false);
+      probe.src = objectUrl;
+    });
   }
 
   private createPreview(file: File): DocumentPreview | null {

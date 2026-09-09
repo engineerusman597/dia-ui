@@ -106,7 +106,17 @@
         </div>
       </div>
     </div>
-    @if(doc.fileBytes || doc.safeFileUrl) {
+    <!-- The file arrives after the list, so show its own progress here. -->
+    @if(doc.isLoadingFile) {
+    <div class="d-flex align-items-center justify-content-center gap-2 py-5 text-muted">
+      <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+      <span>Loading document…</span>
+    </div>
+    } @else if(doc.fileLoadFailed) {
+    <div class="alert alert-danger m-3" role="alert">
+      This document could not be loaded.
+    </div>
+    } @else if(doc.fileBytes || doc.safeFileUrl) {
     <!-- Image -->
     @if(!doc.isPdf) {
     <img [src]="doc.fileBytes" class="img-fluid" style="object-fit:contain;" />

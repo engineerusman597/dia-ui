@@ -160,10 +160,17 @@ export class ClientService {
     });
   }
 
-  getClientInfo(id: string): Observable<Client | CommonError> {
+  /**
+   * Pass includeFileBytes = false to list the client's documents without their file
+   * content, then load each file separately when it is actually displayed.
+   */
+  getClientInfo(id: string, includeFileBytes: boolean = true): Observable<Client | CommonError> {
     const url = `ClientDocument/client-info/${id}`;
+    const params = includeFileBytes
+      ? undefined
+      : new HttpParams().set('includeFileBytes', 'false');
     return this.httpClient
-      .get<Client>(url)
+      .get<Client>(url, { params })
       .pipe(catchError(this.commonHttpErrorService.handleError));
   }
 

@@ -17,6 +17,8 @@ export interface ClientDocument {
     safeFileUrl?: SafeResourceUrl | null; // Used for displaying PDFs securely in the frontend, not sent to backend
     expiryDate?: Date | null; // ISO date string, used for ID documents
     isPdf?: boolean; // Flag to indicate if the document is a PDF, used for frontend display logic
+    isLoadingFile?: boolean; // The file content is fetched separately from the document list
+    fileLoadFailed?: boolean;
     issueOrBillDate?: Date | null; // ISO date string, used for address proof documents
     statusChangedDate?: Date | string | null; // When it was last approved or rejected
     statusChangedByUserId?: string | null;
