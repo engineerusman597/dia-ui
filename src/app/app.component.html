@@ -1,2 +1,4 @@
-<app-loading-indicator></app-loading-indicator>
+<!-- Document downloads render their own per-document spinner inside the preview, so
+     they must not also raise the full-screen one: the page is usable while they load. -->
+<app-loading-indicator [filteredUrlPatterns]="['ClientDocument/download', 'ClientDocument/download-additional-proof']"></app-loading-indicator>
 <router-outlet></router-outlet>

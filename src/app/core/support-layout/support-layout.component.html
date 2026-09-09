@@ -1,4 +1,6 @@
-<app-loading-indicator></app-loading-indicator>
+<!-- Document downloads render their own per-document spinner inside the preview, so
+     they must not also raise the full-screen one: the page is usable while they load. -->
+<app-loading-indicator [filteredUrlPatterns]="['ClientDocument/download', 'ClientDocument/download-additional-proof']"></app-loading-indicator>
 <div class="card-wrap">
     <div class="kyc-banner d-flex align-items-center justify-content-between gap-2 mb-3">
         <img src="assets/images/DI-Logo.png" alt="DIASPORA INSURANCE" style="max-height:72px;margin-bottom:8px"
