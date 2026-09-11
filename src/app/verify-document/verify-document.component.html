@@ -136,15 +136,24 @@
     }
     @if((doc.documentStatus !== documentStatus.Rejected && doc.documentStatus !== documentStatus.Approved) &&
     doc.documentType !== documentType.AdditionalDocument) {
+    <!-- A decision is recorded against the signed-in user, so it must not be possible
+         to approve or reject a document that has not actually been displayed yet.
+         Disabled buttons swallow pointer events, so the tooltip lives on a wrapper. -->
     <div class="d-flex align-items-center justify-content-center gap-3 ms-4 mt-3">
-      <button matButton="filled" class="success btn" (click)="onApprove(doc)">
-        <mat-icon class="medium-icon fs-5 align-middle">check_circle</mat-icon>
-        Approve
-      </button>
-      <button matButton="filled" class="error btn" (click)="onReject(doc)">
-        <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon>
-        Reject
-      </button>
+      <span [matTooltip]="decisionBlockedReason(doc)" matTooltipPosition="above">
+        <button matButton="filled" class="success btn" [disabled]="!isReadyForDecision(doc)"
+          (click)="onApprove(doc)">
+          <mat-icon class="medium-icon fs-5 align-middle">check_circle</mat-icon>
+          Approve
+        </button>
+      </span>
+      <span [matTooltip]="decisionBlockedReason(doc)" matTooltipPosition="above">
+        <button matButton="filled" class="error btn" [disabled]="!isReadyForDecision(doc)"
+          (click)="onReject(doc)">
+          <mat-icon class="medium-icon fs-5 align-middle">cancel</mat-icon>
+          Reject
+        </button>
+      </span>
     </div>
     }
   </div>

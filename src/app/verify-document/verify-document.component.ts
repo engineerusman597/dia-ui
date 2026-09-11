@@ -2,6 +2,7 @@ import { Component, inject, OnDestroy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Inject } from '@angular/core';
 import { Client } from 'src/app/client/model/client';
@@ -27,6 +28,7 @@ import { DocumentHistoryComponent } from '../client/document-history/document-hi
   imports: [
     MatButtonModule,
     MatIconModule,
+    MatTooltipModule,
     PipesModule,
     PdfViewerComponent,
     NgClass
@@ -131,6 +133,32 @@ export class VerifyDocumentComponent implements OnDestroy {
         doc.fileLoadFailed = true;
       },
     });
+  }
+
+  /**
+   * True once the document is actually on screen. Only the first document is loaded
+   * up front, so "not currently loading" does not mean "ready" — the rendered file
+   * itself is the test.
+   */
+  isReadyForDecision(doc: ClientDocument): boolean {
+    return !!(doc?.fileBytes || doc?.safeFileUrl);
+  }
+
+  /** Empty when a decision is allowed, so no tooltip shows on an enabled button. */
+  decisionBlockedReason(doc: ClientDocument): string {
+    if (this.isReadyForDecision(doc)) {
+      return '';
+    }
+
+    if (doc?.fileLoadFailed) {
+      return 'This document could not be loaded, so it cannot be approved or rejected yet.';
+    }
+
+    if (doc?.isLoadingFile) {
+      return 'Please wait until the document has finished loading.';
+    }
+
+    return 'Open the document before approving or rejecting it.';
   }
 
   private applyBlobPreview(doc: ClientDocument, blob: Blob): void {
