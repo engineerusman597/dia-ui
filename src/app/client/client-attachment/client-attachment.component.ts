@@ -260,36 +260,15 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
     }
   }
 
+  // Open the dialog straight away and let it fetch the file itself — it shows a
+  // spinner while loading. Downloading here first would leave the eye button dead
+  // for the whole transfer, which is minutes for a large document on a slow link.
   openVerify(doc: ClientDocument): string | void {
     if (!doc?.id) {
       return;
     }
 
-    const clientDoc$ = doc.documentType === DocumentType.AdditionalDocument
-      ? this.fileService.getClientAdditionalDocument(doc.id)
-      : this.fileService.getClientDocument(doc.id);
-
-    this.sub$.sink = clientDoc$.subscribe({
-      next: (blob: Blob) => {
-        if (!blob || blob.size === 0) {
-          return;
-        }
-
-        const mimeType = blob.type || this.getMimeType(doc.name || '');
-        const typedBlob = blob.type ? blob : new Blob([blob], { type: mimeType });
-        const objectUrl = URL.createObjectURL(typedBlob);
-        doc.fileBytes = objectUrl;
-
-        if (mimeType === 'application/pdf' || (doc.name || '').toLowerCase().endsWith('.pdf')) {
-          doc.safeFileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-          doc.isPdf = true;
-        } else {
-          doc.isPdf = false;
-        }
-
-        this.openVerifyDailog(doc);
-      },
-    });
+    this.openVerifyDailog(doc);
   }
 
   openVerifyDailog(doc: ClientDocument) {
