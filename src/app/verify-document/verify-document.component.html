@@ -115,6 +115,7 @@
     } @else if(doc.fileLoadFailed) {
     <div class="alert alert-danger m-3" role="alert">
       This document could not be loaded.
+      <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="doc.fileLoadFailed = false; loadFile(doc)">Retry</button>
     </div>
     } @else if(doc.fileBytes || doc.safeFileUrl) {
     <!-- Image -->
@@ -125,6 +126,13 @@
     @if(doc.isPdf) {
     <app-pdf-viewer [src]="doc.fileBytes" [height]="'clamp(360px, 70vh, 820px)'"></app-pdf-viewer>
     }
+    } @else {
+    <div class="d-flex align-items-center justify-content-center py-4">
+      <button matButton="filled" class="btn" type="button" (click)="loadFile(doc)">
+        <mat-icon class="medium-icon fs-5 align-middle">visibility</mat-icon>
+        Load preview
+      </button>
+    </div>
     }
     @if((doc.documentStatus !== documentStatus.Rejected && doc.documentStatus !== documentStatus.Approved) &&
     doc.documentType !== documentType.AdditionalDocument) {

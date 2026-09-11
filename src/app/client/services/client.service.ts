@@ -161,14 +161,12 @@ export class ClientService {
   }
 
   /**
-   * Pass includeFileBytes = false to list the client's documents without their file
-   * content, then load each file separately when it is actually displayed.
+   * Default is metadata only. Pass true only when you must embed file bytes in JSON
+   * (prefer the download endpoints + blob URLs instead).
    */
-  getClientInfo(id: string, includeFileBytes: boolean = true): Observable<Client | CommonError> {
+  getClientInfo(id: string, includeFileBytes: boolean = false): Observable<Client | CommonError> {
     const url = `ClientDocument/client-info/${id}`;
-    const params = includeFileBytes
-      ? undefined
-      : new HttpParams().set('includeFileBytes', 'false');
+    const params = new HttpParams().set('includeFileBytes', String(includeFileBytes));
     return this.httpClient
       .get<Client>(url, { params })
       .pipe(catchError(this.commonHttpErrorService.handleError));

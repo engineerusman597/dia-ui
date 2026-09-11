@@ -270,16 +270,18 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
       : this.fileService.getClientDocument(doc.id);
 
     this.sub$.sink = clientDoc$.subscribe({
-      next: (res: { fileBytes: string }) => {
-        if (!res.fileBytes) {
+      next: (blob: Blob) => {
+        if (!blob || blob.size === 0) {
           return;
         }
 
-        const mimeType = this.getMimeType(doc.name || '');
-        doc.fileBytes = `data:${mimeType};base64,${res.fileBytes}`;
+        const mimeType = blob.type || this.getMimeType(doc.name || '');
+        const typedBlob = blob.type ? blob : new Blob([blob], { type: mimeType });
+        const objectUrl = URL.createObjectURL(typedBlob);
+        doc.fileBytes = objectUrl;
 
-        if (mimeType === 'application/pdf') {
-          doc.safeFileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(doc.fileBytes);
+        if (mimeType === 'application/pdf' || (doc.name || '').toLowerCase().endsWith('.pdf')) {
+          doc.safeFileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
           doc.isPdf = true;
         } else {
           doc.isPdf = false;
@@ -333,12 +335,15 @@ export class ClientAttachmentComponent extends BaseComponent implements OnDestro
       : this.fileService.getClientDocument(doc.id);
 
     this.sub$.sink = clientDoc$.subscribe({
-      next: (res: { fileBytes: string }) => {
-        const mimeType = this.getMimeType(doc.name || '');
+      next: (blob: Blob) => {
+        const mimeType = blob.type || this.getMimeType(doc.name || '');
+        const typedBlob = blob.type ? blob : new Blob([blob], { type: mimeType });
+        const url = URL.createObjectURL(typedBlob);
         const link = document.createElement('a');
-        link.href = `data:${mimeType};base64,${res.fileBytes}`;
+        link.href = url;
         link.download = doc.name || 'document';
         link.click();
+        URL.revokeObjectURL(url);
       },
       error: () => {
         this.toastr.error('Failed to download document');

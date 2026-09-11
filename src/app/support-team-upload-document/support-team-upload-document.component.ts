@@ -237,30 +237,49 @@ export class SupportTeamUploadDocumentComponent {
         }
       }
 
-      if (!res.fileBytes) { return; }
-
-      const base64 = res.fileBytes;
-      const mimeType = this.getMimeType(res.name || '');
-
-      if (!mimeType) return;
-
-      const fileBytes = `data:${mimeType};base64,${base64}`;
-      const isPdf = mimeType === 'application/pdf';
-
-      const preview: DocumentPreview = {
-        url: fileBytes,
-        isPdf
-      };
-
-      switch (res.documentType) {
-        case DocumentType.IdentityProof:
-          this.idProofDoc = preview;
-          break;
-
-        case DocumentType.AddressProof:
-          this.addressProofDoc = preview;
-          break;
+      if (res.fileBytes) {
+        const base64 = res.fileBytes;
+        const mimeType = this.getMimeType(res.name || '');
+        if (!mimeType) return;
+        const fileBytes = base64.startsWith('data:') ? base64 : `data:${mimeType};base64,${base64}`;
+        const preview: DocumentPreview = {
+          url: fileBytes,
+          isPdf: mimeType === 'application/pdf',
+        };
+        switch (res.documentType) {
+          case DocumentType.IdentityProof:
+            this.idProofDoc = preview;
+            break;
+          case DocumentType.AddressProof:
+            this.addressProofDoc = preview;
+            break;
+        }
+        return;
       }
+
+      if (!res.id) {
+        return;
+      }
+
+      this.fileRequestService.getClientDocument(res.id).subscribe({
+        next: (blob) => {
+          const mimeType = blob.type || this.getMimeType(res.name || '');
+          const typedBlob = blob.type ? blob : new Blob([blob], { type: mimeType });
+          const url = URL.createObjectURL(typedBlob);
+          const preview: DocumentPreview = {
+            url,
+            isPdf: mimeType === 'application/pdf' || (res.name || '').toLowerCase().endsWith('.pdf'),
+          };
+          switch (res.documentType) {
+            case DocumentType.IdentityProof:
+              this.idProofDoc = preview;
+              break;
+            case DocumentType.AddressProof:
+              this.addressProofDoc = preview;
+              break;
+          }
+        },
+      });
     });
   }
 
@@ -271,12 +290,33 @@ export class SupportTeamUploadDocumentComponent {
     }
 
     additional.forEach((res) => {
-      if (!res.fileBytes) { return; }
-      const mimeType = this.getMimeType(res.name || '');
-      const dataUrl = `data:${mimeType};base64,${res.fileBytes}`;
-      const isPdf = mimeType === 'application/pdf';
+      if (res.fileBytes) {
+        const mimeType = this.getMimeType(res.name || '');
+        const dataUrl = res.fileBytes.startsWith('data:')
+          ? res.fileBytes
+          : `data:${mimeType};base64,${res.fileBytes}`;
+        this.additionalDocumentPreviews.push({
+          isPdf: mimeType === 'application/pdf',
+          url: dataUrl,
+        });
+        return;
+      }
 
-      this.additionalDocumentPreviews.push({ isPdf, url: dataUrl });
+      if (!res.id) {
+        return;
+      }
+
+      this.fileRequestService.getClientAdditionalDocument(res.id).subscribe({
+        next: (blob) => {
+          const mimeType = blob.type || this.getMimeType(res.name || '');
+          const typedBlob = blob.type ? blob : new Blob([blob], { type: mimeType });
+          const url = URL.createObjectURL(typedBlob);
+          this.additionalDocumentPreviews.push({
+            isPdf: mimeType === 'application/pdf' || (res.name || '').toLowerCase().endsWith('.pdf'),
+            url,
+          });
+        },
+      });
     });
   }
 
@@ -539,7 +579,7 @@ export class SupportTeamUploadDocumentComponent {
       return;
     }
 
-    this.clientService.getClientInfo(clientId).subscribe({
+    this.clientService.getClientInfo(clientId, false).subscribe({
       next: (client) => {
         const clientData = client as Client;
         if (!clientData) {

@@ -13,7 +13,7 @@ export interface ClientDocument {
     documentStatus?: RequestStatus;
     file?: File; // This property is used only for file uploads and is not sent to the backend
     createdDate?: Date | string; // ISO date string
-    fileBytes?: string; // Base64 string representation of the file content, used for uploads
+    fileBytes?: string; // Object URL or data URL for preview; not sent to the backend
     safeFileUrl?: SafeResourceUrl | null; // Used for displaying PDFs securely in the frontend, not sent to backend
     expiryDate?: Date | null; // ISO date string, used for ID documents
     isPdf?: boolean; // Flag to indicate if the document is a PDF, used for frontend display logic

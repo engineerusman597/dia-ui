@@ -10,7 +10,6 @@ export class FileRequestService {
   constructor(private http: HttpClient) { }
 
   uploadFile(fileForm: ClientDocument, isAdmin: boolean): Observable<any> {
-    // Expecting backend endpoint to be '/file/upload' (fix typo)
     const url = isAdmin ? 'ClientDocument/admin-upload' : 'ClientDocument/client-upload';
     const form = new FormData();
     if (fileForm.id) form.append('Id', fileForm.id);
@@ -27,20 +26,20 @@ export class FileRequestService {
       form.append('ExpiryDate', issueOrBillDate.toISOString());
     }
     if (fileForm.file) {
-      // append file with original filename when available
       form.append('file', fileForm.file, (fileForm.file as File).name);
     }
     return this.http.post(url, form);
   }
 
-  getClientDocument(documentId: string): Observable<{ fileBytes: string, errorMessage: string }> {
+  /** Binary file download (not JSON base64). */
+  getClientDocument(documentId: string): Observable<Blob> {
     const url = `ClientDocument/download/${documentId}`;
-    return this.http.get<{ fileBytes: string, errorMessage: string }>(url);
+    return this.http.get(url, { responseType: 'blob' });
   }
 
-  getClientAdditionalDocument(documentId: string): Observable<{ fileBytes: string }> {
+  getClientAdditionalDocument(documentId: string): Observable<Blob> {
     const url = `ClientDocument/download-additional-proof/${documentId}`;
-    return this.http.get<{ fileBytes: string }>(url);
+    return this.http.get(url, { responseType: 'blob' });
   }
 
   verifyDocument(data: VerifyDocument): Observable<void> {

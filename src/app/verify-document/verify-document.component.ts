@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +15,6 @@ import { DocumentType } from '../client/model/document-type';
 import { DomSanitizer } from '@angular/platform-browser';
 import { FileRequestService } from '../client/services/file-request.service';
 import { ToastrService } from 'ngx-toastr';
-import { ClientStore } from '../client/client-store';
 import { ClientPendingApprovalStore } from '../dashboard/clients-pending-approval/clients-pending-approval-store';
 import { ClientRejectedDocumentStore } from '../dashboard/clients-reject-document/clients-reject-document-store';
 import { PdfViewerComponent } from '@core/pdf-viewer/pdf-viewer.component';
@@ -35,12 +34,13 @@ import { DocumentHistoryComponent } from '../client/document-history/document-hi
   templateUrl: './verify-document.component.html',
   styleUrls: ['./verify-document.component.scss']
 })
-export class VerifyDocumentComponent {
+export class VerifyDocumentComponent implements OnDestroy {
   client: Client | null;
   documents: ClientDocument[];
   documentType = DocumentType;
   documentStatus = RequestStatus;
   hasDocumentBeenUpdated = false;
+  private objectUrls: string[] = [];
 
   commonDialogService = inject(CommonDialogService);
   dialog = inject(MatDialog);
@@ -48,7 +48,6 @@ export class VerifyDocumentComponent {
   sanitizer = inject(DomSanitizer);
   fileRequestService = inject(FileRequestService);
   toaster = inject(ToastrService);
-  clientStore = inject(ClientStore);
   clientPendingApprovalStore = inject(ClientPendingApprovalStore);
   clientRejectedDocumentStore = inject(ClientRejectedDocumentStore);
 
@@ -59,11 +58,25 @@ export class VerifyDocumentComponent {
     if (data?.isClientView) {
       this.client = data?.client ?? null;
       this.documents = data?.documents ?? [];
+      // Parent may already have loaded a preview; otherwise load on demand.
+      this.documents.forEach((doc) => {
+        if (!doc.fileBytes && !doc.safeFileUrl) {
+          // leave unloaded until user clicks Load preview (or auto-load single doc)
+        }
+      });
+      if (this.documents.length === 1) {
+        this.loadFile(this.documents[0]);
+      }
     } else {
       this.client = null;
       this.documents = [];
       this.loadDocument(data?.client?.id!);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    this.objectUrls = [];
   }
 
   getMimeType(fileName: string): string {
@@ -79,20 +92,21 @@ export class VerifyDocumentComponent {
   }
 
   loadDocument(clientId: string) {
-    // Ask for the document list without the file content: the files are over 99% of
-    // that response, and each one is fetched below only when it is shown.
     this.clientService.getClientInfo(clientId, false).subscribe({
       next: (res) => {
         const clientInfo = res as Client;
         this.client = clientInfo;
         this.documents = clientInfo.clientDocuments ?? [];
-        this.documents.forEach((doc) => this.loadFile(doc));
+        // Lazy-load: only the first document up front; others via Load preview.
+        if (this.documents.length > 0) {
+          this.loadFile(this.documents[0]);
+        }
       }
     });
   }
 
-  /** Pulls one document's content and renders it in place once it arrives. */
-  private loadFile(doc: ClientDocument): void {
+  /** Pulls one document's content as a blob and renders it via object URL. */
+  loadFile(doc: ClientDocument): void {
     if (!doc?.id || doc.fileBytes || doc.isLoadingFile) {
       return;
     }
@@ -104,12 +118,13 @@ export class VerifyDocumentComponent {
       : this.fileRequestService.getClientDocument(doc.id);
 
     file$.subscribe({
-      next: (res: { fileBytes: string }) => {
+      next: (blob: Blob) => {
         doc.isLoadingFile = false;
-        if (res?.fileBytes) {
-          doc.fileBytes = res.fileBytes;
-          this.transformDocument(doc);
+        if (!blob || blob.size === 0) {
+          doc.fileLoadFailed = true;
+          return;
         }
+        this.applyBlobPreview(doc, blob);
       },
       error: () => {
         doc.isLoadingFile = false;
@@ -118,28 +133,18 @@ export class VerifyDocumentComponent {
     });
   }
 
-  processDocuments(docs: ClientDocument[] = []): ClientDocument[] {
-    return docs
-      .filter(doc => doc?.fileBytes) // remove empty docs
-      .map(doc => this.transformDocument(doc));
-  }
+  private applyBlobPreview(doc: ClientDocument, blob: Blob): void {
+    const mimeType = blob.type || this.getMimeType(doc.name || '');
+    const typedBlob = blob.type ? blob : new Blob([blob], { type: mimeType });
+    const objectUrl = URL.createObjectURL(typedBlob);
+    this.objectUrls.push(objectUrl);
 
-  transformDocument(doc: ClientDocument): ClientDocument {
-    const mimeType = this.getMimeType(doc.name || '');
-
-    if (!mimeType) return doc;
-
-    const base64Url = `data:${mimeType};base64,${doc.fileBytes}`;
-    doc.fileBytes = base64Url;
-
-    if (mimeType === 'application/pdf') {
-      doc.safeFileUrl = base64Url;
-      doc.isPdf = true;
-    } else {
-      doc.isPdf = false;
+    doc.fileBytes = objectUrl;
+    doc.isPdf = mimeType === 'application/pdf'
+      || ((doc.name || '').toLowerCase().endsWith('.pdf'));
+    if (doc.isPdf) {
+      doc.safeFileUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
     }
-
-    return doc;
   }
 
   onApprove(doc: ClientDocument) {
@@ -150,10 +155,6 @@ export class VerifyDocumentComponent {
     this.confirmStatusChange(doc, RequestStatus.Rejected);
   }
 
-  /**
-   * Approving or rejecting is recorded against the signed-in user, so confirm it
-   * explicitly and let the dialog report any failure inline.
-   */
   private confirmStatusChange(doc: ClientDocument, status: RequestStatus) {
     if (!doc?.id) {
       return;
@@ -188,13 +189,12 @@ export class VerifyDocumentComponent {
     });
   }
 
-  // The status change has already been saved; refresh the stores and this view.
   private onStatusChanged(data: VerifyDocument) {
     data.documentStatus === RequestStatus.Approved
       ? this.toaster.success('Document approved')
       : this.toaster.success('Document rejected');
 
-    this.clientStore.loadByQuery(this.clientStore.filterParameters());
+    // Refresh only the dashboard queues — do not poke ClientStore (avoids full Client list reload).
     this.clientPendingApprovalStore.loadByQuery(this.clientPendingApprovalStore.filterParameters());
     this.clientRejectedDocumentStore.loadByQuery(this.clientRejectedDocumentStore.filterParameters());
 
@@ -213,7 +213,6 @@ export class VerifyDocumentComponent {
     }
   }
 
-  // Full upload / approval / rejection trail for this document.
   openHistory(doc: ClientDocument) {
     if (!this.client?.id) {
       return;
@@ -227,43 +226,39 @@ export class VerifyDocumentComponent {
 
   download(doc: ClientDocument) {
     try {
-      const dataUrl = doc.fileBytes as string;
-      if (!dataUrl) {
+      if (doc.fileBytes && typeof doc.fileBytes === 'string' && !doc.fileBytes.startsWith('data:')) {
+        const a = document.createElement('a');
+        a.href = doc.fileBytes;
+        a.download = doc.name || 'document';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        return;
+      }
+
+      if (!doc.id) {
         this.toaster.error('No file available to download');
         return;
       }
 
-      let mime = this.getMimeType(doc.name || '') || 'application/octet-stream';
-      let base64 = '';
+      const file$ = doc.documentType === DocumentType.AdditionalDocument
+        ? this.fileRequestService.getClientAdditionalDocument(doc.id)
+        : this.fileRequestService.getClientDocument(doc.id);
 
-      if (dataUrl.startsWith('data:')) {
-        const parts = dataUrl.split(',');
-        const meta = parts[0];
-        base64 = parts[1];
-        const m = meta.match(/data:(.*?);/);
-        if (m && m[1]) mime = m[1];
-      } else {
-        // If it's raw base64 without data url
-        base64 = dataUrl;
-      }
-
-      const byteCharacters = atob(base64);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-
-      const blob = new Blob([byteArray], { type: mime });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = doc.name || 'document';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
+      file$.subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = doc.name || 'document';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        },
+        error: () => this.toaster.error('Failed to download file'),
+      });
+    } catch {
       this.toaster.error('Failed to download file');
     }
   }
